@@ -258,6 +258,18 @@ export default class Device{
                 this.datamem[this.arg1]--
                 this.cmdAddr+=2;
             break
+            case c.PUSHMI1MI2:
+                console.log('command PUSHMI1MI2')
+                this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi2
+                this.datamem[this.arg1]++
+                this.cmdAddr+=2;
+            break
+            case c.POPMI1MI2:
+                console.log('command POPMI2')
+                this.mi2 = this.datamem[this.arg1+this.datamem[this.arg1]]
+                this.datamem[this.arg1]--
+                this.cmdAddr+=2;
+            break
             default:
                 console.log('unknow command')
                 this.cmdAddr++;

@@ -4,18 +4,32 @@ import Device from './index.js'
 const c1 = new Compiler()
 const d =  new Device();
 
+
+// X=7
+// Y=9
+
+// TODO: NOT WORKING
 c1.parse(`
-ctomi2 1
-pushmi2 5
 ctomi2 7
 pushmi2 5
-ctomi2 2
+ctomi2 4
 pushmi2 5
-ctomi2 9
-pushmi2 5
-popmi2 5
-popmi2 5
-popmi2 5
+popmi2
+popmi1
+momultomi1 
+pushmi1 5
+
+ctomi1 9
+pushmi1 5
+ctomi1 3
+pushmi1 5
+popmi2
+popmi1
+momultomi1
+pushmi1 5
+popmi2
+popmi1
+mosumtomi1
 `)
 
 console.log(c1.getProgmemByteString())
