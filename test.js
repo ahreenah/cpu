@@ -8,7 +8,7 @@ const d =  new Device();
 // X=7
 // Y=9
 
-// TODO: NOT WORKING
+// TODO: NOT WORKING x * 4 + y * 3
 c1.parse(`
 ctomi2 7
 pushmi2 5
