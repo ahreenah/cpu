@@ -9,28 +9,60 @@ const d =  new Device();
 // Y=9
 
 // TODO: NOT WORKING x * 4 + y * 3
-c1.parse(`
-ctomi2 7
-pushmi2 5
-ctomi2 4
-pushmi2 5
-popmi2
-popmi1
-momultomi1 
-pushmi1 5
-
-ctomi1 9
-pushmi1 5
-ctomi1 3
-pushmi1 5
-popmi2
-popmi1
-momultomi1
-pushmi1 5
-popmi2
-popmi1
-mosumtomi1
-`)
+    // compile error mi1tomem memtomi1
+c1.parse(
+    `
+    ctomi1 5
+    pushmi1 0
+    popmi1 0
+    mi1tomem 21
+    ctomi1 4
+    pushmi1 0
+    memtomi1 21
+    pushmi1 0
+    ctomi1 1
+    pushmi1 0
+    popmi2 0
+    popmi1 0
+    mosubtomi1
+    pushmi1 0
+    popmi2 0
+    popmi1 0
+    mosumtomi1
+    pushmi1 0
+    popmi1 0
+    mi1tomem 22
+    memtomi1 21
+    pushmi1 0
+    popmi1 0
+    mi1tomem 23
+    memtomi1 22
+    pushmi1 0
+    memtomi1 21
+    pushmi1 0
+    popmi2 0
+    popmi1 0
+    mosumtomi1
+    pushmi1 0
+    popmi1 0
+    mi1tomem 21
+    memtomi1 23
+    pushmi1 0
+    ctomi1 6
+    pushmi1 0
+    popmi2 0
+    popmi1 0
+    mosumtomi1
+    pushmi1 0
+    ctomi1 3
+    pushmi1 0
+    popmi2 0
+    popmi1 0
+    mosubtomi1
+    pushmi1 0
+    popmi1 0
+    mi1tomem 22
+    `)
 
 console.log(c1.getProgmemByteString())
 d.progmem=eval(c1.getProgmemByteString())
@@ -48,7 +80,7 @@ function runTicks(count){
     }
 }
 
-runTicks(12)
+runTicks(50)
 console.log('mi1: ', d.mi1)
 console.log('mi2: ',d.mi2)
 console.log('mem:', d.datamem)

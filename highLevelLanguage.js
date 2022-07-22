@@ -9,10 +9,13 @@ const LineTypes= {
     END:"END",
 }
 
+const VAR_START_ADDR=21
+
 class HLCompiler{
     code='';
     textLines=[];
     lines = [];
+    variables=[];
     setCode(v){
         this.code=v
         this.textLines = this.code.split('\n')
@@ -32,11 +35,12 @@ class HLCompiler{
         ar[0]=ar[0].trim().split(',').map(i=>i.trim())
         console.log('ar[1]',JSON.stringify(ar[1]))
         console.log( 'groups:',ar[1].match(/(?<type>\w*) ?(\[(?<size>\d+)\])?/).groups)
-        let {size, type} = ar[1].trim().match(/(?<type>\w*) ?(\[(?<size>\d+)\])?/).groups
+        let {size, type} = ar[1].trim().match(/(?<type>\w*) ?(\[ (?<size>\d+) \])?/).groups
+        console.log("SIZE::::",size)
         v.data={
             variableNames :ar[0],
             variable_type:type,
-            size:size
+            size
         }
     }
     parseExpression(v){
@@ -99,9 +103,69 @@ class HLCompiler{
             tree=oneStep(tree)
         console.log(tree)
         if (tree.length==1) return tree[0]
+        // возвращает дерево
         return {left:tree[0],right:tree[2],sign:tree[1].value, type:'EXPRESSION'}
     }
-
+    treetoPolish(v){
+        if(v.type=='VALUE')
+            return [{type:'VALUE',value:v.value}]
+        return [...this.treetoPolish(v.left), ...this.treetoPolish(v.right),{type:'SIGN',value:v.sign}]
+    }
+    computeVarSection(){
+        let typeDefinitions = this.lines.filter(i=>i.type=='TYPE_DEFINITION')
+        let data = []
+        for(let i of typeDefinitions){
+            for(let name of i.data.variableNames){
+                data.push({name,type:i.data.variable_type,size:i.data.size})
+            }
+        }
+        let addr = VAR_START_ADDR;
+        const baseSizes={
+            'unsigned':1
+        }
+        for(let i of data){
+            i.dataMemAddr = addr;
+            addr+= baseSizes[i.type]*(i.size??1)
+        }
+        this.variables=data;
+    }
+    polishToAsm(v){
+        let res = [];
+        const STACK_ADDR=0
+        for(let i of v){
+            if(i.type=='VALUE'){
+                let isNumber = !isNaN(+i.value)
+                if(isNumber){
+                    res.push('ctomi1 '+i.value)
+                }
+                else{
+                    res.push('memtomi1 '+i.value)
+                }
+                res.push('pushmi1 ' + STACK_ADDR)
+            }
+            if(i.type=='SIGN'){
+                res.push('popmi2 ' + STACK_ADDR)
+                res.push('popmi1 ' + STACK_ADDR)
+                switch(i.value){
+                    case '+': res.push('mosumtomi1'); break;
+                    case '-': res.push('mosubtomi1'); break;
+                    case '*': res.push('momultomi1'); break;
+                }
+                res.push('pushmi1 ' + STACK_ADDR)
+            }
+        }
+        return res;
+    }
+    fullAsm(){
+        let res = []
+        for(let i of this.lines){
+            if(i.asm){
+                for(let str of i.asm)
+                    res.push(str)
+            }
+        }
+        return res;
+    }
     /*
         x * 4 + y * 3 == 20
 
@@ -250,6 +314,8 @@ class HLCompiler{
                 if(s.text.endsWith(' begin')){
                     let cond = s.text.split('while ')[1].split(' begin')[0]
                     s.cond=this.parseExpression(cond)
+                    s.condPolish = this.treetoPolish(s.cond)
+                    delete s.cond
                     return s.type=LineTypes.WHILE_BEGIN
                 }
                 throw new Error("end is expected")
@@ -258,6 +324,8 @@ class HLCompiler{
                 if(s.text.endsWith('begin')){
                     let cond = s.text.split('if ')[1].split(' begin')[0]
                     s.cond=this.parseExpression(cond)
+                    s.condPolish = this.treetoPolish(s.cond)
+                    delete s.cond
                     return s.type=LineTypes.IF_BEGIN
                 }
                 throw new Error("end is expected")
@@ -271,11 +339,46 @@ class HLCompiler{
             if(s.text.indexOf('=')!=-1){
                 s.left = s.text.split('=')[0].trim()
                 s.right = this.parseExpression(s.text.split('=')[1].trim())
-                
+                s.rightPolish = this.treetoPolish(s.right)
+                s.asm = this.polishToAsm(s.rightPolish)
+                s.asm.push('popmi1 0')
+                s.asm.push('mi1tomem '+s.left)
+                delete s.right
                 return s.type=LineTypes.EQUATION
             }
         }
         this.lines.map(i=>({...i,type:detectLineType(i)}))
+    }
+    checkBeginEndPairs(){
+        let begins=[];
+        let count = 1;
+        for (let i=0; i<this.lines.length; i++){
+            if(this.lines[i].type.endsWith('_BEGIN')){
+                this.lines[i].beginId = count;
+                begins.push({type: this.lines[i].type, id:count})
+                count++;
+            }
+            if(this.lines[i].type=='END'){
+                let {type,id} = begins.pop()
+                this.lines[i].beginType = type;
+                this.lines[i].beginId = id;
+            }
+
+        }
+        if(begins.length) throw new Error("END expected")
+    }
+    insertAddressesToCode(){
+        let fullAsm = this.fullAsm()
+        for(let i=0; i<fullAsm.length;i++){
+            // not working for labeled lines
+            let cmd = fullAsm[i].split(' ')[0]
+            if(cmd.startsWith('memto') || cmd.endsWith('tomem')){
+                let varName = fullAsm[i].split(' ')[1]
+                let varInfo = this.variables.filter(i=>i.name==varName)
+                fullAsm[i]=cmd+' '+varInfo[0].dataMemAddr
+            }
+        }
+        return fullAsm
     }
 }
 
@@ -283,30 +386,39 @@ let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
     x, y, z : unsigned
+    arsm, ar2:unsigned[2];
     ar      : unsigned [10]
 end
 
 # alternative to int main (entry point)
 entry begin
-    x = 3
-    y = 4
+    x = 5
+    y = 4 + (x-1)
     
-    if x * 4 + y * 3 == 20 begin
+    # if x * ( 4 + y ) * 3 == 20 + x begin
         z = x
-        x = y
-        y = z
-    end
-
-    z = y
+        x = y + x
+        y = z + 6 - 3
+    # end
     
-    while y + 2 begin
-        z = z + y
-        x = x - 1
-    end
+    # 
+    # z = y
+    # 
+    # while y + 2 + 0 > 1 + x * (3 - y)  begin
+    #     z = z + y
+    #     x = x - 1
+    # end
+
 
 end`)
 c.clearEmptyLines()
 console.log(c.textLines);
 console.log(c.lines);
 c.parseLineTypes();
-console.log(JSON.stringify(c.lines,null,1))
+c.checkBeginEndPairs();
+console.log(JSON.stringify(c.lines.map(i=>({text:i.text, asm:i.asm, ...i})),null,1))
+c.computeVarSection();
+console.log(c.variables)
+console.log(c.fullAsm())
+console.log(c.insertAddressesToCode())
+console.log(c.insertAddressesToCode().join('\n'))

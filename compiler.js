@@ -32,8 +32,10 @@ class Line{
     get bytes(){
         let res = '0x'+this.commandCode.toString(16).toLocaleUpperCase().padStart(2,'0')+
             '0'+this.condition;
-        for(let i of this.args)
-            res+=', '+'0x'+i.toString(16).padStart(4,'0')
+        for(let i of this.args){
+            // console.log(i)
+            res+=', '+'0x'+(i??0).toString(16).padStart(4,'0')
+        }
         return res;
     }
     // get 

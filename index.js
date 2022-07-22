@@ -235,7 +235,7 @@ export default class Device{
                 this.cmdAddr++;
             break
             case c.PUSHMI1:
-                console.log('command POPMI1')
+                console.log('command PUSHMI1')
                 this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi1
                 this.datamem[this.arg1]++
                 this.cmdAddr+=2;
@@ -247,7 +247,7 @@ export default class Device{
                 this.cmdAddr+=2;
             break
             case c.PUSHMI2:
-                console.log('command POPMI2')
+                console.log('command PUSHMI2')
                 this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi2
                 this.datamem[this.arg1]++
                 this.cmdAddr+=2;
@@ -265,7 +265,7 @@ export default class Device{
                 this.cmdAddr+=2;
             break
             case c.POPMI1MI2:
-                console.log('command POPMI2')
+                console.log('command POPMI1MI2')
                 this.mi2 = this.datamem[this.arg1+this.datamem[this.arg1]]
                 this.datamem[this.arg1]--
                 this.cmdAddr+=2;
