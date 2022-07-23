@@ -338,7 +338,12 @@ class HLCompiler{
                     let cond = s.text.split('if ')[1].split(' begin')[0]
                     s.cond=this.parseExpression(cond)
                     s.condPolish = this.treetoPolish(s.cond)
+                    s.condasm = this.polishToAsm(s.condPolish)
                     delete s.cond
+                    s.condasm.push('jmp.eq if_'+1+'_inside')
+                    s.condasm.push("jmp if_1_end")
+                    s.condasm.push("if_1_inside: nop")
+                    s.asm=s.condasm
                     return s.type=LineTypes.IF_BEGIN
                 }
                 throw new Error("end is expected")
@@ -347,8 +352,9 @@ class HLCompiler{
                 this.parseTypeDefinition(s)
                 return s.type=LineTypes.TYPE_DEFINITION
             } 
-            if(s.text=='end')
+            if(s.text=='end'){
                 return s.type=LineTypes.END
+            }
             if(s.text.indexOf('=')!=-1){
                 s.left = s.text.split('=')[0].trim()
                 s.right = this.parseExpression(s.text.split('=')[1].trim())
@@ -356,6 +362,7 @@ class HLCompiler{
                 s.asm = this.polishToAsm(s.rightPolish)
                 s.asm.push('popmi1 0')
                 s.asm.push('mi1tomem '+s.left)
+
                 delete s.right
                 return s.type=LineTypes.EQUATION
             }
@@ -375,6 +382,9 @@ class HLCompiler{
                 let {type,id} = begins.pop()
                 this.lines[i].beginType = type;
                 this.lines[i].beginId = id;
+                // console.log(s)
+                if(type=='IF_BEGIN')
+                this.lines[i].asm=['if_'+1+'_end:nop']
             }
 
         }
@@ -395,6 +405,9 @@ class HLCompiler{
     }
 }
 
+
+
+// не работает проверка типа end, не проверяется 
 let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
@@ -405,15 +418,12 @@ end
 
 # alternative to int main (entry point)
 entry begin
-    x = 5
-    y = 4 + (x-2)
-    
-    # if x * ( 4 + y ) * 3 == 20 + x begin
-        z = x
-        x = y + x
-        y = z + 6 - 3
-    # end
-    
+    x = 10
+    y = 9
+    if x = y + 1 begin
+        x = 4
+    end
+
     # 
     # z = y
     # 
