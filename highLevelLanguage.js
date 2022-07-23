@@ -328,7 +328,21 @@ class HLCompiler{
                     let cond = s.text.split('while ')[1].split(' begin')[0]
                     s.cond=this.parseExpression(cond)
                     s.condPolish = this.treetoPolish(s.cond)
+                    s.condasm = ['while_'+1+'_begin:nop',...this.polishToAsm(s.condPolish)]
+                    let sign = s.condPolish[s.condPolish.length-1].value
                     delete s.cond
+                    // вход в цикл
+                    if(sign=='=')
+                        s.condasm.push('jmp.eq while_'+1+'_inside')
+                    if(sign=='<')
+                        s.condasm.push('jmp.lt while_'+1+'_inside')
+                    if(sign=='>')
+                        s.condasm.push('jmp.gt while_'+1+'_inside')
+                    // выход из цикла если не вошли
+                    s.condasm.push('jmp while_'+1+'_end')
+                    // метка начала тела цикла
+                    s.condasm.push('while_'+1+'_inside: nop')
+                    s.asm = s.condasm
                     return s.type=LineTypes.WHILE_BEGIN
                 }
                 throw new Error("end is expected")
@@ -339,8 +353,14 @@ class HLCompiler{
                     s.cond=this.parseExpression(cond)
                     s.condPolish = this.treetoPolish(s.cond)
                     s.condasm = this.polishToAsm(s.condPolish)
+                    let sign = s.condPolish[s.condPolish.length-1].value
                     delete s.cond
-                    s.condasm.push('jmp.eq if_'+1+'_inside')
+                    if(sign=='=')
+                        s.condasm.push('jmp.eq if_'+1+'_inside')
+                    if(sign=='<')
+                        s.condasm.push('jmp.lt if_'+1+'_inside')
+                    if(sign=='>')
+                        s.condasm.push('jmp.gt if_'+1+'_inside')
                     s.condasm.push("jmp if_1_end")
                     s.condasm.push("if_1_inside: nop")
                     s.asm=s.condasm
@@ -384,7 +404,9 @@ class HLCompiler{
                 this.lines[i].beginId = id;
                 // console.log(s)
                 if(type=='IF_BEGIN')
-                this.lines[i].asm=['if_'+1+'_end:nop']
+                    this.lines[i].asm=['if_'+1+'_end:nop']
+                else if(type=='WHILE_BEGIN')
+                    this.lines[i].asm=['jmp while_'+1+'_begin','while_'+1+'_end:nop']
             }
 
         }
@@ -408,6 +430,7 @@ class HLCompiler{
 
 
 // не работает проверка типа end, не проверяется 
+// не работает умножение
 let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
@@ -418,19 +441,20 @@ end
 
 # alternative to int main (entry point)
 entry begin
-    x = 10
-    y = 9
-    if x = y + 1 begin
-        x = 4
+    x = 20
+    y = 22
+    if x > y begin
+        z = x
+        x = y
+        y = z
     end
 
     # 
     # z = y
     # 
-    # while y + 2 + 0 > 1 + x * (3 - y)  begin
-    #     z = z + y
-    #     x = x - 1
-    # end
+    while y < 90  begin
+         y = y + 10
+    end
 
 
 end`)
@@ -473,7 +497,7 @@ function runTicks(count){
     }
 }
 
-runTicks(190)
+runTicks(240)
 console.log('mi1: ', d.mi1)
 console.log('mi2: ',d.mi2)
 console.log('mem:', d.datamem)
