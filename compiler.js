@@ -32,8 +32,10 @@ class Line{
     get bytes(){
         let res = '0x'+this.commandCode.toString(16).toLocaleUpperCase().padStart(2,'0')+
             '0'+this.condition;
-        for(let i of this.args)
-            res+=', '+'0x'+i.toString(16).padStart(4,'0')
+        for(let i of this.args){
+            // console.log(i)
+            res+=', '+'0x'+(i??0).toString(16).padStart(4,'0')
+        }
         return res;
     }
     // get 
@@ -48,8 +50,10 @@ export default class Compiler{
         s = s.split('#')[0]
         if(!s.trim())return;
         let l = new Line()
-        // while(s.indexOf('  '!=-1))
-        //     s=s.replaceAll('  ',' ')
+        s = s.trim();
+        while(s.indexOf('  ')!=-1){
+            s=s.replace('  ',' ')
+        }
         let label_command = s.split(':')
         let restString = ''
         if(label_command.length==2){
@@ -152,37 +156,3 @@ export default class Compiler{
 }
 
 let c1 = new Compiler();
-
-
-// c1.parseLine('ctomi1 3')
-// c1.parseLine('nop')
-// c1.parseLine('x2: ctomi1 2')
-// c1.parseLine('x3: ctomi1.lt 2')
-// c1.parseLine('x1: ctomi1.lt 3')
-// c1.parseLine('jmp.lt x2')
-// c1.parseLine('jmp.gt x3')
-// c1.parseLine('jmp x1')
-
-// c1.parse(`ctomi1 3
-// nop
-// x2: ctomi1.eq 2
-// x3: ctomi1.lt 2
-// x1: ctomi1.lt 3
-// jmp.lt.gt x2
-// jmp.gt x3
-// jmp.lt.gt.eq x1
-// MI2TOMEM 1`)
-
-// c1.parse(`
-// #demo app test
-//         ctomi1 33
-//         ctomi2 32
-//         mosubtomi1
-// x11:    ctomem 2 4
-//         mi1tomem 5
-//         ctomi1 16
-//         memtomi1 5
-//         jmp x11
-// `)
-
-

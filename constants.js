@@ -1,4 +1,3 @@
-
 export const	NOP = 0            // 0x00 // NOP                                   - 
 export const	JMP = 1            // 0x01 // JMP           addr                    cmdAddr = addr
 export const	CTOMI1 = 2         // 0x02 // CTOMI1        value                   mi1 = value

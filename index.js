@@ -112,7 +112,9 @@ export default class Device{
         ((this.commandCondition==2) && this.mogt) ||
         ((this.commandCondition==4) && this.molt)
     ) }
-    
+    loadDatamem(v){
+        this.datamem=v;
+    }
     // posedge clk
     tick(){
         console.log(`executiong address:`,this.cmdAddr,`  command: `,this.commandCode, `condition: `, this.commandCondition)
@@ -235,7 +237,7 @@ export default class Device{
                 this.cmdAddr++;
             break
             case c.PUSHMI1:
-                console.log('command POPMI1')
+                console.log('command PUSHMI1')
                 this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi1
                 this.datamem[this.arg1]++
                 this.cmdAddr+=2;
@@ -247,13 +249,25 @@ export default class Device{
                 this.cmdAddr+=2;
             break
             case c.PUSHMI2:
-                console.log('command POPMI2')
+                console.log('command PUSHMI2')
                 this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi2
                 this.datamem[this.arg1]++
                 this.cmdAddr+=2;
             break
             case c.POPMI2:
                 console.log('command POPMI2')
+                this.mi2 = this.datamem[this.arg1+this.datamem[this.arg1]]
+                this.datamem[this.arg1]--
+                this.cmdAddr+=2;
+            break
+            case c.PUSHMI1MI2:
+                console.log('command PUSHMI1MI2')
+                this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi2
+                this.datamem[this.arg1]++
+                this.cmdAddr+=2;
+            break
+            case c.POPMI1MI2:
+                console.log('command POPMI1MI2')
                 this.mi2 = this.datamem[this.arg1+this.datamem[this.arg1]]
                 this.datamem[this.arg1]--
                 this.cmdAddr+=2;
@@ -265,4 +279,3 @@ export default class Device{
         // this.cmdAddr++;
     }
 }
-
