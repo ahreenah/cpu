@@ -16,6 +16,7 @@ class HLCompiler{
     textLines=[];
     lines = [];
     variables=[];
+    beginCount=0;
     setCode(v){
         this.code=v
         this.textLines = this.code.split('\n')
@@ -328,20 +329,20 @@ class HLCompiler{
                     let cond = s.text.split('while ')[1].split(' begin')[0]
                     s.cond=this.parseExpression(cond)
                     s.condPolish = this.treetoPolish(s.cond)
-                    s.condasm = ['while_'+1+'_begin:nop',...this.polishToAsm(s.condPolish)]
+                    s.condasm = ['while_'+'ii'+'_begin:nop',...this.polishToAsm(s.condPolish)]
                     let sign = s.condPolish[s.condPolish.length-1].value
                     delete s.cond
                     // вход в цикл
                     if(sign=='=')
-                        s.condasm.push('jmp.eq while_'+1+'_inside')
+                        s.condasm.push('jmp.eq while_'+'ii'+'_inside')
                     if(sign=='<')
-                        s.condasm.push('jmp.lt while_'+1+'_inside')
+                        s.condasm.push('jmp.lt while_'+'ii'+'_inside')
                     if(sign=='>')
-                        s.condasm.push('jmp.gt while_'+1+'_inside')
+                        s.condasm.push('jmp.gt while_'+'ii'+'_inside')
                     // выход из цикла если не вошли
-                    s.condasm.push('jmp while_'+1+'_end')
+                    s.condasm.push('jmp while_'+'ii'+'_end')
                     // метка начала тела цикла
-                    s.condasm.push('while_'+1+'_inside: nop')
+                    s.condasm.push('while_'+'ii'+'_inside: nop')
                     s.asm = s.condasm
                     return s.type=LineTypes.WHILE_BEGIN
                 }
@@ -356,13 +357,13 @@ class HLCompiler{
                     let sign = s.condPolish[s.condPolish.length-1].value
                     delete s.cond
                     if(sign=='=')
-                        s.condasm.push('jmp.eq if_'+1+'_inside')
+                        s.condasm.push('jmp.eq if_'+'ii'+'_inside')
                     if(sign=='<')
-                        s.condasm.push('jmp.lt if_'+1+'_inside')
+                        s.condasm.push('jmp.lt if_'+'ii'+'_inside')
                     if(sign=='>')
-                        s.condasm.push('jmp.gt if_'+1+'_inside')
-                    s.condasm.push("jmp if_1_end")
-                    s.condasm.push("if_1_inside: nop")
+                        s.condasm.push('jmp.gt if_'+'ii'+'_inside')
+                    s.condasm.push('jmp if_'+'ii'+'_end')
+                    s.condasm.push('if_'+'ii'+'_inside: nop')
                     s.asm=s.condasm
                     return s.type=LineTypes.IF_BEGIN
                 }
@@ -404,9 +405,9 @@ class HLCompiler{
                 this.lines[i].beginId = id;
                 // console.log(s)
                 if(type=='IF_BEGIN')
-                    this.lines[i].asm=['if_'+1+'_end:nop']
+                    this.lines[i].asm=['if_'+'ii'+'_end:nop']
                 else if(type=='WHILE_BEGIN')
-                    this.lines[i].asm=['jmp while_'+1+'_begin','while_'+1+'_end:nop']
+                    this.lines[i].asm=['jmp while_'+id+'_begin','while_'+id+'_end:nop']
             }
 
         }
@@ -425,6 +426,16 @@ class HLCompiler{
         }
         return fullAsm
     }
+    insertBeginNumbers(){
+        console.log('lines:',this.lines)
+        for(let i=0; i< this.lines.length; i++){
+            if(this.lines[i].beginId){
+                for(let j=0; j<this.lines[i]?.asm?.length??0; j++){
+                    this.lines[i].asm[j] = this.lines[i].asm[j].replace('_ii_','_'+this.lines[i].beginId+'_')
+                }
+            }
+        }
+    }
 }
 
 
@@ -435,27 +446,26 @@ let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
     x, y, z : unsigned
-    arsm, ar2:unsigned[2];
-    ar      : unsigned [10]
 end
 
-# alternative to int main (entry point)
 entry begin
-    x = 20
-    y = 22
-    if x > y begin
-        z = x
-        x = y
-        y = z
+    x = 1
+    y = 0
+
+    if x = 2 begin
+        while y < 10 begin
+            y = y + 1
+        end
     end
 
-    # 
-    # z = y
-    # 
-    while y < 90  begin
-         y = y + 10
+    if x = 1 begin
+        while y < 11 begin
+            y = y + 2
+            if y = 2 begin
+                x=55
+            end
+        end
     end
-
 
 end`)
 
@@ -476,6 +486,7 @@ console.log(c.insertAddressesToCode())
 console.log('\n\n+++++++++++++++++++++++++++++++++++++')
 console.log("FULL ASM: ")
 console.log('+++++++++++++++++++++++++++++++++++++')
+c.insertBeginNumbers();
 console.log(c.insertAddressesToCode().join('\n'))
 console.log('\n\n+++++++++++++++++++++++++++++++++++++')
 console.log("FULL BYTE CODE: ")
