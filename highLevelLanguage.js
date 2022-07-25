@@ -311,7 +311,7 @@ end
 
 entry begin
     x = 16
-    y = 16
+    y = 12
     
     if x < y begin
         z = x
