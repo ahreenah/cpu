@@ -310,7 +310,7 @@ var begin
 end
 
 entry begin
-    x = 28
+    x = 16
     y = 16
     
     if x < y begin
@@ -327,6 +327,7 @@ entry begin
             y = z
         end
     end
+
     y = 0
     z = 0
 

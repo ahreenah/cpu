@@ -219,7 +219,7 @@ export default class Device{
             break
             case c.MI2TORA:
                 console.log("command MI2TORA");
-                this.mi2=this.ra;
+                this.ra=this.mi2;
                 this.cmdAddr+=1;
             break
             case c.RATOMI2:
@@ -274,11 +274,8 @@ export default class Device{
             break
             case c.CALL:
                 console.log('command CALL '+this.arg1+' '+this.arg2)
-                // push current address
-                this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.cmdAddr+1
-                this.datamem[this.arg1]++
                 // jump
-                this.cmdAddr=this.arg2;
+                this.cmdAddr=this.arg1;
             break
             case c.RET:
                 let addr = this.arg1;
@@ -286,7 +283,15 @@ export default class Device{
                 this.cmdAddr = this.datamem[this.arg1+this.datamem[this.arg1]]
                 console.log('DEC ADDR '+addr)
                 this.datamem[addr]--;
-                this.cmdAddr+=2;
+            break
+            case c.PUSHADDR:
+                console.log('command PUSHADDR '+this.arg1+' '+this.arg2)
+                let stackAddr = this.arg1;
+                let offset = this.arg2
+                
+                this.datamem[stackAddr+this.datamem[stackAddr]+1] = this.cmdAddr+offset
+                this.datamem[stackAddr]++
+                this.cmdAddr+=3;
             break
             default:
                 console.log('unknow command')

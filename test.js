@@ -21,7 +21,34 @@ const d =  new Device();
     end:   nop
     `)
 */
-// test sort array
+// test procedure call
+/*
+    jmp start
+    
+    adder:nop
+        popmi2 5
+        mi2tora
+
+        memtomi1 0
+        popmi2 5
+        mosumtomi1
+        mi1tomem 0
+
+        ratomi2
+        pushmi2 5
+    ret 5
+    
+    start: nop
+        ctomi1 5
+        pushmi1 5
+        call 5 adder
+
+        
+        ctomi1 2
+        pushmi1 5
+        call 5 adder
+
+ */
 
 d.loadDatamem([
     0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
@@ -31,30 +58,60 @@ d.loadDatamem([
 
 if(
     c1.parse(`
-    ctora 1
+
+    # working example without arguments 
+    
+    # ctora 1
+    # jmp start
+    # 
+    # after: nop
+    #     incra
+    #     incra
+    # ret 5
+    # 
+    # start: nop
+    # 
+    # call 5 after
+    # call 5 after
+
     jmp start
     
-    after: nop
-        incra
-        incra
+    adder:nop
+        # pop 2 arguments
+        popmi2 5
+        popmi1 5
+
+        # calculate sum
+        mosumtomi1
+
+        # save return address
+        popmi2 5
+
+        # push answer
+        pushmi1 5 
+
+        # push return address
+        pushmi2 5
+
     ret 5
     
     start: nop
-    
-    call 5 after
-    call 5 after
+        # return address + 14 to stack 5
+        pushaddr 5 14
 
-    
-    # prc: incra
-    # ret 5
-    # 
-    # after:nop
-    # 
-    # call 5 pf
-    # call 5 4
-    # call 5 4
-    # 
-    # ctomi1 10
+        # args - 3, 2
+        ctomi1 2
+        pushmi1 5
+        ctomi1 8
+        pushmi1 5
+
+        # call proc
+        call adder
+
+        # get result
+        popmi1 5
+
+
     `)
 ){
     
@@ -68,14 +125,14 @@ function runTicks(count){
         d.tick();
         console.log('mem:', d.datamem)
         
-        // console.log('mi1: ', d.mi1)
-        // console.log('mi2: ',d.mi2)
+        console.log('mi1: ', d.mi1)
+        console.log('mi2: ',d.mi2)
         // console.log('mem:', d.datamem)
-        // console.log('ra:', d.ra)
+        console.log('ra:', d.ra)
     }
 }
 
-runTicks(15)
+runTicks(50)
 console.log('mi1: ', d.mi1)
 console.log('mi2: ',d.mi2)
 console.log('mem:', d.datamem)
