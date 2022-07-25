@@ -112,7 +112,9 @@ export default class Device{
         ((this.commandCondition==2) && this.mogt) ||
         ((this.commandCondition==4) && this.molt)
     ) }
-    
+    loadDatamem(v){
+        this.datamem=v;
+    }
     // posedge clk
     tick(){
         console.log(`executiong address:`,this.cmdAddr,`  command: `,this.commandCode, `condition: `, this.commandCondition)
@@ -270,6 +272,22 @@ export default class Device{
                 this.datamem[this.arg1]--
                 this.cmdAddr+=2;
             break
+            case c.CALL:
+                console.log('command CALL '+this.arg1+' '+this.arg2)
+                // push current address
+                this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.cmdAddr+1
+                this.datamem[this.arg1]++
+                // jump
+                this.cmdAddr=this.arg2;
+            break
+            case c.RET:
+                let addr = this.arg1;
+                console.log('command RET '+this.arg1+' '+this.datamem[this.arg1])
+                this.cmdAddr = this.datamem[this.arg1+this.datamem[this.arg1]]
+                console.log('DEC ADDR '+addr)
+                this.datamem[addr]--;
+                this.cmdAddr+=2;
+            break
             default:
                 console.log('unknow command')
                 this.cmdAddr++;
@@ -277,4 +295,3 @@ export default class Device{
         // this.cmdAddr++;
     }
 }
-

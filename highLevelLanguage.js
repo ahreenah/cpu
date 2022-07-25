@@ -16,19 +16,33 @@ class HLCompiler{
     textLines=[];
     lines = [];
     variables=[];
+    beginCount=0;
     setCode(v){
         this.code=v
         this.textLines = this.code.split('\n')
     }
     clearEmptyLines(){
-        this.textLines = this.textLines.map(i=>i.split('#')[0].trim())
-        const signs = ['+','-','>','<','==','!=','(',')','[',']']
-        signs.map(i=>
-            this.textLines = this.textLines.map(s=>s=s.replaceAll(i,' '+i+' '))
-        )
-        this.textLines = this.textLines.filter(i=>i.length).map(i=>i.replaceAll(/\ +/g,' '))
+        this.textLines = this.textLines.map(i=>i.split('#')[0].trim()).filter(i=>i?.length)
+        const signs = ['+','-','>','<','==','!=','(',')','[',']',':',',']
+        console.log('i',this.textLines)
+        signs.map(i=>{
+            console.log('sign:',i)
+            this.textLines.map((s,num)=>{
+                if(s){
+                    console.log(num,'->',this.textLines[num],'->',s.replace(i,' '+i+' '))
+                    this.textLines[num]=s.replace(i,' '+i+' ')
+                }
+            })
+        })
+        console.log('o',this.textLines)
+        this.textLines = this.textLines.filter(i=>i?.length).map((i)=>{ 
+            console.log('i:',i)
+            return i.replace(/\ +/g,' ')
+        })
         
         this.lines = this.textLines.map(i=>({text:i}))
+
+        console.log('o',this.textLines)
     }
     parseTypeDefinition(v){
         let ar = v.text.split(':')
@@ -166,144 +180,6 @@ class HLCompiler{
         }
         return res;
     }
-    /*
-        x * 4 + y * 3 == 20
-
-        {
-            "left": {
-                "type": "EXPRESSION",
-                "left": {
-                    "type": "EXPRESSION",
-                    "left": {
-                        "type": "VALUE",
-                        "value": "x"
-                    },
-                    "sign": "*",
-                    "right": {
-                        "type": "VALUE",
-                        "value": "4"
-                    }
-                },
-                "sign": "+",
-                "right": {
-                    "type": "EXPRESSION",
-                    "left": {
-                        "type": "VALUE",
-                        "value": "y"
-                    },
-                    "sign": "*",
-                    "right": {
-                        "type": "VALUE",
-                        "value": "3"
-                    }
-                }
-            },
-            "right": {
-                "type": "VALUE",
-                "value": "20"
-            },
-            "sign": "==",
-            "type": "EXPRESSION"
-        }
-
-        ==
-            20
-            +
-                *
-                    X
-                    4
-                *
-                    Y
-                    3
-        
-        x 4 * y 3 * + 20 ==
-        
-        push x
-        push 4
-        pop mi2
-        pop mi1
-        momultomi1 
-        push mi1
-        push y
-        push 3
-        pop mi2
-        pop mi1
-        momultomi1
-        push mi1
-        pop mi2
-        pop mi1
-        mosumtomi1
-        push mi1
-        push 20
-        jmp.eq inside
-        jmp end
-        inside:
-            // code
-        end:
-
-
-    */
-    
-    /*
-        expression:
-
-        x + y * 3 == 2
-
-        tree:
-
-        {
-            "left": {
-                "type": "EXPRESSION",
-                "left": {
-                    "type": "VALUE",
-                    "value": "x"
-                },
-                "sign": "+",
-                "right": {
-                    "type": "EXPRESSION",
-                    "left": {
-                        "type": "VALUE",
-                        "value": "y"
-                    },
-                    "sign": "*",
-                    "right": {
-                        "type": "VALUE",
-                        "value": "3"
-                    }
-                }
-            },
-            "right": {
-                "type": "VALUE",
-                "value": "2"
-            },
-            "sign": "==",
-            "type": "EXPRESSION"
-        }
-
-        x y 3 * + 2 ==
-
-        push x
-        push y
-        push 3
-        pop mi2
-        pop mi1
-        momultomi1
-        push mi1
-        pop mi2
-        pop mi1
-        mosumtomi1
-        push mi1
-        push 2
-        pop mi2
-        pop mi1
-        jmp.eq inside
-        jmp end
-        inside;
-        // code
-        end:
-
-    */
-     
     parseLineTypes(){
         let  detectLineType=(s)=>{
             if(s.text=='var begin')
@@ -315,7 +191,21 @@ class HLCompiler{
                     let cond = s.text.split('while ')[1].split(' begin')[0]
                     s.cond=this.parseExpression(cond)
                     s.condPolish = this.treetoPolish(s.cond)
+                    s.condasm = ['while_'+'ii'+'_begin:nop',...this.polishToAsm(s.condPolish)]
+                    let sign = s.condPolish[s.condPolish.length-1].value
                     delete s.cond
+                    // вход в цикл
+                    if(sign=='=')
+                        s.condasm.push('jmp.eq while_'+'ii'+'_inside')
+                    if(sign=='<')
+                        s.condasm.push('jmp.lt while_'+'ii'+'_inside')
+                    if(sign=='>')
+                        s.condasm.push('jmp.gt while_'+'ii'+'_inside')
+                    // выход из цикла если не вошли
+                    s.condasm.push('jmp while_'+'ii'+'_end')
+                    // метка начала тела цикла
+                    s.condasm.push('while_'+'ii'+'_inside: nop')
+                    s.asm = s.condasm
                     return s.type=LineTypes.WHILE_BEGIN
                 }
                 throw new Error("end is expected")
@@ -325,7 +215,18 @@ class HLCompiler{
                     let cond = s.text.split('if ')[1].split(' begin')[0]
                     s.cond=this.parseExpression(cond)
                     s.condPolish = this.treetoPolish(s.cond)
+                    s.condasm = this.polishToAsm(s.condPolish)
+                    let sign = s.condPolish[s.condPolish.length-1].value
                     delete s.cond
+                    if(sign=='=')
+                        s.condasm.push('jmp.eq if_'+'ii'+'_inside')
+                    if(sign=='<')
+                        s.condasm.push('jmp.lt if_'+'ii'+'_inside')
+                    if(sign=='>')
+                        s.condasm.push('jmp.gt if_'+'ii'+'_inside')
+                    s.condasm.push('jmp if_'+'ii'+'_end')
+                    s.condasm.push('if_'+'ii'+'_inside: nop')
+                    s.asm=s.condasm
                     return s.type=LineTypes.IF_BEGIN
                 }
                 throw new Error("end is expected")
@@ -334,8 +235,9 @@ class HLCompiler{
                 this.parseTypeDefinition(s)
                 return s.type=LineTypes.TYPE_DEFINITION
             } 
-            if(s.text=='end')
+            if(s.text=='end'){
                 return s.type=LineTypes.END
+            }
             if(s.text.indexOf('=')!=-1){
                 s.left = s.text.split('=')[0].trim()
                 s.right = this.parseExpression(s.text.split('=')[1].trim())
@@ -362,6 +264,11 @@ class HLCompiler{
                 let {type,id} = begins.pop()
                 this.lines[i].beginType = type;
                 this.lines[i].beginId = id;
+                // console.log(s)
+                if(type=='IF_BEGIN')
+                    this.lines[i].asm=['if_'+'ii'+'_end:nop']
+                else if(type=='WHILE_BEGIN')
+                    this.lines[i].asm=['jmp while_'+id+'_begin','while_'+id+'_end:nop']
             }
 
         }
@@ -380,37 +287,55 @@ class HLCompiler{
         }
         return fullAsm
     }
+    insertBeginNumbers(){
+        console.log('lines:',this.lines)
+        for(let i=0; i< this.lines.length; i++){
+            if(this.lines[i].beginId){
+                for(let j=0; j<this.lines[i]?.asm?.length??0; j++){
+                    this.lines[i].asm[j] = this.lines[i].asm[j].replace('_ii_','_'+this.lines[i].beginId+'_')
+                }
+            }
+        }
+    }
 }
 
+
+
+// не работает проверка типа end, не проверяется 
+// не работает умножение
 let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
     x, y, z : unsigned
-    arsm, ar2:unsigned[2];
-    ar      : unsigned [10]
 end
 
-# alternative to int main (entry point)
 entry begin
-    x = 5
-    y = 4 + (x-1)
+    x = 28
+    y = 16
     
-    # if x * ( 4 + y ) * 3 == 20 + x begin
+    if x < y begin
         z = x
-        x = y + x
-        y = z + 6 - 3
-    # end
-    
-    # 
-    # z = y
-    # 
-    # while y + 2 + 0 > 1 + x * (3 - y)  begin
-    #     z = z + y
-    #     x = x - 1
-    # end
+        x = y
+        y = z
+    end
 
+    while x > y begin
+        x = x - y
+        if x < y begin
+            z = x
+            x = y
+            y = z
+        end
+    end
+    y = 0
+    z = 0
 
 end`)
+
+
+import LLCompiler from './compiler.js'
+import Device from './index.js'
+
 c.clearEmptyLines()
 console.log(c.textLines);
 console.log(c.lines);
@@ -421,4 +346,34 @@ c.computeVarSection();
 console.log(c.variables)
 console.log(c.fullAsm())
 console.log(c.insertAddressesToCode())
+console.log('\n\n+++++++++++++++++++++++++++++++++++++')
+console.log("FULL ASM: ")
+console.log('+++++++++++++++++++++++++++++++++++++')
+c.insertBeginNumbers();
 console.log(c.insertAddressesToCode().join('\n'))
+console.log('\n\n+++++++++++++++++++++++++++++++++++++')
+console.log("FULL BYTE CODE: ")
+console.log('+++++++++++++++++++++++++++++++++++++')
+let c1 = new LLCompiler()
+c1.parse(c.insertAddressesToCode().join('\n'))
+console.log(c1.getProgmemByteString())
+console.log('\n\n+++++++++++++++++++++++++++++++++++++')
+console.log("EXECUTION RESULT: ")
+console.log('+++++++++++++++++++++++++++++++++++++')
+let d = new Device()
+d.progmem=eval(c1.getProgmemByteString())
+
+
+// do not sythesize
+function runTicks(count){
+    for(let i=0; i<count; i++){
+        d.tick();
+    }
+}
+
+runTicks(240)
+console.log('mi1: ', d.mi1)
+console.log('mi2: ',d.mi2)
+console.log('mem:', d.datamem)
+console.log('ra:', d.ra)
+// import Device from ".";
