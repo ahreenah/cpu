@@ -94,6 +94,7 @@ export default class Device{
     mi1     = 0;
     mi2     = 0;
     ra      = 0;
+    sp      = 0;
 
     // assign
     get commandCode(){ return (this.progmem[this.cmdAddr]/256)>>0 }
@@ -309,6 +310,60 @@ export default class Device{
                 }
                 this.cmdAddr+=3;
             break
+            case c.MALLOC:{
+                    console.log('command MALLOC '+this.arg1+' '+this.arg2)
+                    let stackAddr = this.arg1;
+                    let size = this.arg2
+                    this.datamem[stackAddr] += size 
+                }
+                this.cmdAddr+=3;
+            break
+            case c.MFREE:{
+                    console.log('command MFREE '+this.arg1+' '+this.arg2)
+                    let stackAddr = this.arg1;
+                    let size = this.arg2
+                    this.datamem[stackAddr] -= size 
+                }
+                this.cmdAddr+=3;
+            break
+            
+		    case c.MEMTOSP:
+                this.sp = sp = this.mem[this.arg1]
+                this.cmdAddr+=2;
+            break
+            
+            case c.MEMSPOFFSETTOMI1:
+                this.mi1 = this.mem[this.sp+this.arg1]
+                this.cmdAddr+=2;
+            break
+            
+            case c.MEMSPOFFSETTOMI2:
+                this.mi2 = this.mem[this.sp+this.arg1]
+                this.cmdAddr+=2;
+            break
+            
+            case c.MI1TOMEMSPOFFSET:
+                this.mem[this.sp+this.arg1] = this.mi1
+                this.cmdAddr+=2;
+            break
+            
+            case c.MI2TOMEMSPOFFSET:
+                this.mem[this.sp+this.arg1] = this.mi2
+                this.cmdAddr+=2;
+            break
+            
+            case c.PUSHSP:
+                this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.sp
+                this.datamem[this.arg1]++
+                this.cmdAddr+=2;
+            break
+            
+            case c.POPSP:
+                this.sp = this.datamem[this.arg1+this.datamem[this.arg1]]
+                this.datamem[this.arg1]--
+                this.cmdAddr+=2;
+            break
+            
             default:
                 console.log('unknow command')
                 this.cmdAddr++;

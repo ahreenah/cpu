@@ -56,6 +56,59 @@ d.loadDatamem([
     0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
 ])
 
+
+
+let resursion=`
+
+sumtox: nop
+    # one local var
+    malloc 0 1
+
+    # get the arg
+    sbacktomi2 0 3
+    swpmi
+    ctomi2 1
+    jmp.eq resfound
+        # arg > 1
+        swpmi
+        mi2tosback 0 1
+        swpmi
+        mosubtomi1
+        pushmi1 0
+        pushaddr 0 5
+        call sumtox
+        popmi1 0
+        sbacktomi2 0 2
+        mosumtomi1
+        # clear args
+        popmi2 0
+
+    resfound:nop
+    # clear vars
+    mfree 0 1
+    # get address
+    popmi2 0
+    # push result
+    pushmi1 0
+    # push address
+    pushmi2 0
+ret 0
+
+start:nop
+
+# args - 1
+ctomi1 7
+pushmi1 0
+# address
+pushaddr 0 5
+# call
+call sumtox
+# result
+popmi2 0
+# clear args
+popmi1 0
+# result is in mi 2
+`
 if(
     c1.parse(`
 
@@ -172,57 +225,48 @@ if(
     #    popmi1 5
     #    popmi2 5
 
-    jmp start
+    malloc 0 3
 
-    sumtox: nop
-        # one local var
-        ctomi1 0
-        pushmi1 0
+    ctomi2 16
+    mi2tosback 0 3
+    ctomi2 8
+    mi2tosback 0 2
 
-        # get the arg
-        sbacktomi2 0 3
-        swpmi
-        ctomi2 1
-        jmp.eq resfound
-            # arg > 1
-            swpmi
-            mi2tosback 0 1
-            swpmi
-            mosubtomi1
-            pushmi1 0
-            pushaddr 0 5
-            call sumtox
-            popmi1 0
-            sbacktomi2 0 2
-            mosumtomi1
-            # clear args
-            popmi2 0
+    sbacktomi2 0 3
+    pushmi2 0
+    sbacktomi2 0 2
+    pushmi2 0
 
-        resfound:nop
-        # clear vars
-        popmi2 0
-        # get address
-        popmi2 0
-        # push result
-        pushmi1 0
-        # push address
-        pushmi2 0
-    ret 0
-
-    start:nop
-
-    # args - 1
-    ctomi1 4
-    pushmi1 0
-    # address
-    pushaddr 0 5
-    # call
-    call sumtox
-    # result
-    popmi2 0
-    # clear args
     popmi1 0
-    # result is in mi 2
+    popmi2 0
+
+    jmp.lt if_3inside
+    jmp if_3_end
+    if_3_inside: nop
+        sbacktomi2 0 3
+        pushmi2 0
+        popmi2 0 
+        mi2tosback 0 1
+
+        
+        sbacktomi2 0 2
+        pushmi2 0
+        popmi2 0 
+        mi2tosback 0 3
+
+        
+        sbacktomi2 0 1
+        pushmi2 0
+        popmi2 0 
+        mi2tosback 0 2
+    if3_end: nop
+
+    ctomi2 0
+    mi2tosback 0 1
+    ctomi2 0
+    mi2tosback 0 2
+    
+
 
     `)
 ){
@@ -245,7 +289,7 @@ function runTicks(count){
 }
 
 
-runTicks(150)
+runTicks(50)
 console.log('mem:', d.datamem)
 
 console.log('mi1: ', d.mi1)

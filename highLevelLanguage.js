@@ -153,7 +153,7 @@ class HLCompiler{
                     res.push('ctomi1 '+i.value)
                 }
                 else{
-                    res.push('memtomi1 '+i.value)
+                    res.push('memtomi1 '+i.value) // TODO:stack sbacktomi1 
                 }
                 res.push('pushmi1 ' + STACK_ADDR)
             }
@@ -244,7 +244,7 @@ class HLCompiler{
                 s.rightPolish = this.treetoPolish(s.right)
                 s.asm = this.polishToAsm(s.rightPolish)
                 s.asm.push('popmi1 0')
-                s.asm.push('mi1tomem '+s.left)
+                s.asm.push('mi1tomem '+s.left) // TODO:stack
                 delete s.right
                 return s.type=LineTypes.EQUATION
             }
@@ -279,7 +279,7 @@ class HLCompiler{
         for(let i=0; i<fullAsm.length;i++){
             // not working for labeled lines
             let cmd = fullAsm[i].split(' ')[0]
-            if(cmd.startsWith('memto') || cmd.endsWith('tomem')){
+            if(cmd.startsWith('memto') || cmd.endsWith('tomem')){ // TODO:stack
                 let varName = fullAsm[i].split(' ')[1]
                 let varInfo = this.variables.filter(i=>i.name==varName)
                 fullAsm[i]=cmd+' '+varInfo[0].dataMemAddr
@@ -311,7 +311,7 @@ end
 
 entry begin
     x = 16
-    y = 12
+    y = 80
     
     if x < y begin
         z = x
@@ -319,16 +319,10 @@ entry begin
         y = z
     end
 
-    while x > y begin
+    while x>y begin
         x = x - y
-        if x < y begin
-            z = x
-            x = y
-            y = z
-        end
     end
 
-    y = 0
     z = 0
 
 end`)
@@ -363,6 +357,7 @@ console.log("EXECUTION RESULT: ")
 console.log('+++++++++++++++++++++++++++++++++++++')
 let d = new Device()
 d.progmem=eval(c1.getProgmemByteString())
+console.log(c1.getProgmemDump().length)
 
 
 // do not sythesize
@@ -372,7 +367,15 @@ function runTicks(count){
     }
 }
 
-runTicks(240)
+function run(){
+    while (d.cmdAddr<c1.getProgmemDump().length){
+
+        d.tick();
+    }
+}
+
+// runTicks(200)
+run()
 console.log('mi1: ', d.mi1)
 console.log('mi2: ',d.mi2)
 console.log('mem:', d.datamem)
