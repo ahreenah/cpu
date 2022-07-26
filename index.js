@@ -294,10 +294,19 @@ export default class Device{
                 this.cmdAddr+=3;
             break
             case c.SBACKTOMI2:{
-                console.log('command SBACKTOMI2 '+this.arg1+' '+this.arg2)
-                let stackAddr = this.arg1;
-                let offset = this.arg2
-                this.mi2 = this.datamem[stackAddr+this.datamem[stackAddr]-offset+1]}
+                    console.log('command SBACKTOMI2 '+this.arg1+' '+this.arg2)
+                    let stackAddr = this.arg1;
+                    let offset = this.arg2
+                    this.mi2 = this.datamem[stackAddr+this.datamem[stackAddr]-offset+1]
+                }
+                this.cmdAddr+=3;
+            break
+            case c.MI2TOSBACK:{
+                    console.log('command MI2TOSBACK '+this.arg1+' '+this.arg2)
+                    let stackAddr = this.arg1;
+                    let offset = this.arg2
+                    this.datamem[stackAddr+this.datamem[stackAddr]-offset+1] = this.mi2 
+                }
                 this.cmdAddr+=3;
             break
             default:

@@ -175,20 +175,20 @@ if(
     jmp start
 
     demofuncwithmem:nop
-        # reserve memory for three local vars (init values are 2 , 7 , 9 )
+        # reserve memory for three local vars (init values are 3, 4 ) -> memsize = 2
         ctomi1 3
         pushmi1 0 
         ctomi1 4
         pushmi1 0 
 
         # calculate sum and put it to mi1
-        sbacktomi2 0 4
+        sbacktomi2 0 4 # arg 1 , shift = memsize + 1 + argnum = 2 + 1 + 1 = 4
         swpmi
-        sbacktomi2 0 5
+        sbacktomi2 0 5 # arg 2
         mosumtomi1
-        sbacktomi2 0 1
+        sbacktomi2 0 1 # mem 1
         mosumtomi1
-        sbacktomi2 0 2
+        sbacktomi2 0 2 # mem 2
         mosumtomi1
         
 
@@ -206,28 +206,53 @@ if(
         pushmi2 0
     ret 0
 
+    sumtox: nop
+        # one local var
+        ctomi1 0
+        pushmi1 0
+
+        # get the arg
+        sbacktomi2 0 3
+        swpmi
+        ctomi2 1
+        jmp.eq resfound
+            # arg > 1
+            swpmi
+            mi2tosback 0 1
+            swpmi
+            mosubtomi1
+            pushmi1 0
+            pushaddr 0 5
+            call sumtox
+            popmi1 0
+            sbacktomi2 0 2
+            mosumtomi1
+            # clear args
+            popmi2 0
+
+        resfound:nop
+        # clear vars
+        popmi2 0
+        # get address
+        popmi2 0
+        # push result
+        pushmi1 0
+        # push address
+        pushmi2 0
+    ret 0
+
     start:nop
 
-    ctomi1 1
-    pushmi1 0 
+    # args - 1
     ctomi1 4
-    pushmi1 0 
-    ctomi1 9
-    pushmi1 0 
-
-    # args - 2, 3
-    ctomi1 1
-    pushmi1 0
-    ctomi1 2
     pushmi1 0
     # address
-    pushaddr 0 4
+    pushaddr 0 5
     # call
-    call demofuncwithmem
+    call sumtox
     # result
     popmi2 0
     # clear args
-    popmi1 0
     popmi1 0
     # result is in mi 2
 
@@ -252,7 +277,7 @@ function runTicks(count){
 }
 
 
-runTicks(130)
+runTicks(150)
 console.log('mem:', d.datamem)
 
 console.log('mi1: ', d.mi1)
