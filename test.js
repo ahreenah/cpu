@@ -174,38 +174,6 @@ if(
 
     jmp start
 
-    demofuncwithmem:nop
-        # reserve memory for three local vars (init values are 3, 4 ) -> memsize = 2
-        ctomi1 3
-        pushmi1 0 
-        ctomi1 4
-        pushmi1 0 
-
-        # calculate sum and put it to mi1
-        sbacktomi2 0 4 # arg 1 , shift = memsize + 1 + argnum = 2 + 1 + 1 = 4
-        swpmi
-        sbacktomi2 0 5 # arg 2
-        mosumtomi1
-        sbacktomi2 0 1 # mem 1
-        mosumtomi1
-        sbacktomi2 0 2 # mem 2
-        mosumtomi1
-        
-
-        # clearing space used for three local vars
-        popmi2 0
-        popmi2 0
-        
-        # save return address to mi2
-        popmi2 0
-
-        # push function result
-        pushmi1 0
-
-        # push return address
-        pushmi2 0
-    ret 0
-
     sumtox: nop
         # one local var
         ctomi1 0
