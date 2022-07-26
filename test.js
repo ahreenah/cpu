@@ -225,47 +225,64 @@ if(
     #    popmi1 5
     #    popmi2 5
 
+    #######################################################
+
+    # glogal vars
     malloc 0 3
 
-    ctomi2 16
-    mi2tosback 0 3
-    ctomi2 8
-    mi2tosback 0 2
+    jmp start
 
-    sbacktomi2 0 3
-    pushmi2 0
-    sbacktomi2 0 2
-    pushmi2 0
+    proc1:nop
+        # 1 local var
+        malloc 0 1
 
-    popmi1 0
-    popmi2 0
+        # save stack pointer from mem to register
+        memtosp 0
 
-    jmp.lt if_3inside
-    jmp if_3_end
-    if_3_inside: nop
-        sbacktomi2 0 3
+        #logic
+
+
+        # clear local vars
+        mfree 0 1 
+
+        # save return address to mi2
+        popmi2 0
+
+        # push result
+        ctomi1 3
+        pushmi1 0
+
+        # push return address
         pushmi2 0
-        popmi2 0 
-        mi2tosback 0 1
 
-        
-        sbacktomi2 0 2
-        pushmi2 0
-        popmi2 0 
-        mi2tosback 0 3
-
-        
-        sbacktomi2 0 1
-        pushmi2 0
-        popmi2 0 
-        mi2tosback 0 2
-    if3_end: nop
-
-    ctomi2 0
-    mi2tosback 0 1
-    ctomi2 0
-    mi2tosback 0 2
+        ret 0
     
+    
+    
+    start: nop
+        # stack pointer
+        pushsp 0
+
+        # args = 1, 2
+        ctomi1 1
+        pushmi1 0
+        ctomi1 2
+        pushmi1 0
+
+        # return address
+        pushaddr 0 5 # second = 5
+        call proc1
+
+        # get res
+        popmi2 0
+
+        # remove args
+        mfree 0 2
+
+        #restore sp
+        popsp 0
+        
+
 
 
     `)
@@ -284,6 +301,7 @@ function runTicks(count){
         console.log('mi1: ', d.mi1)
         console.log('mi2: ',d.mi2)
         console.log('mem:', d.datamem)
+        console.log('sp:', d.sp)
         // console.log('ra:', d.ra)
     }
 }

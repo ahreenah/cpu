@@ -328,41 +328,61 @@ export default class Device{
             break
             
 		    case c.MEMTOSP:
-                this.sp = sp = this.mem[this.arg1]
+                console.log('command MEMTOSP '+this.arg1)
+                this.sp = this.datamem[this.arg1]
                 this.cmdAddr+=2;
             break
             
             case c.MEMSPOFFSETTOMI1:
-                this.mi1 = this.mem[this.sp+this.arg1]
+                console.log('command MEMSPOFFSETTOMI1 '+this.arg1)
+                this.mi1 = this.datamem[this.sp+this.arg1]
                 this.cmdAddr+=2;
             break
             
             case c.MEMSPOFFSETTOMI2:
-                this.mi2 = this.mem[this.sp+this.arg1]
+                console.log('command MEMSPOFFSETTOMI2 '+this.arg1)
+                this.mi2 = this.datamem[this.sp+this.arg1]
                 this.cmdAddr+=2;
             break
             
             case c.MI1TOMEMSPOFFSET:
-                this.mem[this.sp+this.arg1] = this.mi1
+                console.log('command MI1TOMEMSPOFFSET '+this.arg1)
+                this.datamem[this.sp+this.arg1] = this.mi1
                 this.cmdAddr+=2;
             break
             
             case c.MI2TOMEMSPOFFSET:
-                this.mem[this.sp+this.arg1] = this.mi2
+                console.log('command MI2TOMEMSPOFFSET '+this.arg1)
+                this.datamem[this.sp+this.arg1] = this.mi2
+                this.cmdAddr+=2;
+            break
+
+            case c.MI2TOMEMSPNEGOFFSET:
+                console.log('command MI2TOMEMSPNEGOFFSET '+this.arg1)
+                this.datamem[this.sp-this.arg1] = this.mi2
+                this.cmdAddr+=2;
+            break
+
+            case c.MEMSPNEGOFFSETTOMI2:
+                console.log('command MEMSPNEGOFFSETTOMI2 '+this.arg1)
+                this.mi2 = this.datamem[this.sp-this.arg1]
                 this.cmdAddr+=2;
             break
             
             case c.PUSHSP:
+                console.log('command PUSHSP '+this.arg1)
                 this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.sp
                 this.datamem[this.arg1]++
                 this.cmdAddr+=2;
             break
             
             case c.POPSP:
+                console.log('command POPSP '+this.arg1)
                 this.sp = this.datamem[this.arg1+this.datamem[this.arg1]]
                 this.datamem[this.arg1]--
                 this.cmdAddr+=2;
             break
+
             
             default:
                 console.log('unknow command')
