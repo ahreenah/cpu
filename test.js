@@ -176,26 +176,25 @@ if(
 
     demofuncwithmem:nop
         # reserve memory for three local vars (init values are 2 , 7 , 9 )
-        ctomi1 2
+        ctomi1 3
         pushmi1 0 
-        ctomi1 10
-        pushmi1 0 
-        ctomi1 9
+        ctomi1 4
         pushmi1 0 
 
         # calculate sum and put it to mi1
-        sbacktomi2 0 1
+        sbacktomi2 0 4
         swpmi
-        sbacktomi2 0 2
-        mosumtomi1 
-        sbacktomi2 0 3
+        sbacktomi2 0 5
         mosumtomi1
+        sbacktomi2 0 1
+        mosumtomi1
+        sbacktomi2 0 2
+        mosumtomi1
+        
 
         # clearing space used for three local vars
         popmi2 0
         popmi2 0
-        popmi2 0
-
         
         # save return address to mi2
         popmi2 0
@@ -216,9 +215,21 @@ if(
     ctomi1 9
     pushmi1 0 
 
+    # args - 2, 3
+    ctomi1 1
+    pushmi1 0
+    ctomi1 2
+    pushmi1 0
+    # address
     pushaddr 0 4
+    # call
     call demofuncwithmem
+    # result
     popmi2 0
+    # clear args
+    popmi1 0
+    popmi1 0
+    # result is in mi 2
 
     `)
 ){
