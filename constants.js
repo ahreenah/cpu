@@ -28,15 +28,16 @@ export const    POPMI1MI2 = 26     // 0x1a // PUSHMI1MI2                        
 export const    CALL = 27          // 0x1b // CALL			   proc_addr                  stack[stack_addr].push(cmdAddr); cmdAddr = proc_addr
 export const    RET = 28           // 0x1c // RET              stack_addr                 cmdAddr = stack[stack_addr].pop()
 export const    PUSHADDR = 29      // 0x1d // PUSHADDR         stack_addr    offset       stack[stackAddr].push(cmdAddr+offset)
-
+export const    SBACKTOMI2 = 30    // 0x1e // SBACKTOMI2       stack_addr    back_offset  mi2 = stack[stack.length-back_offset]
+export const    MI2TOSBACK = 31    // 0x1f // SBACKTOMI2       stack_addr    back_offset  mi2 = stack[stack.length-back_offset]          
 
 
 	export const	commands = {
 		NOP, JMP, CTOMI1, CTOMI2, MOSUMTOMI1, MOSUBTOMI1, CTOMEM, MEMTOMI1, MI1TOMEM, MEMTOMI2, MI2TOMEM, CTORA, INCRA, DECRA, MEMRATOMI2, MI2TOMEMRA, MI2TORA, RATOMI2, SWPMI, MI1TORA, MI1TOMEMRA, PUSHMI1, PUSHMI2, POPMI1, POPMI2, PUSHMI1MI2, POPMI1MI2, 
-		CALL, RET, PUSHADDR
+		CALL, RET, PUSHADDR, SBACKTOMI2, MI2TOSBACK
 	}
 
 	export const	commandArgs = {
 		NOP:0, JMP:1, CTOMI1:1, CTOMI2:1, MOSUMTOMI1:0, MOSUBTOMI1:0, CTOMEM:2, MEMTOMI1:1, MI1TOMEM:1, MEMTOMI2:1, MI2TOMEM:1, CTORA:1, INCRA:0, DECRA:0, MEMRATOMI2:0, MI2TOMEMRA:0, 
-		MI2TORA:0, RATOMI2:0, SWPMI:0, MI1TORA:0, MI1TOMEMRA:0, PUSHMI1:1, PUSHMI2:1, POPMI1:1, POPMI2:1, PUSHMI1MI2:0, POPMI1MI2:0, CALL: 1, RET:1, PUSHADDR: 2
+		MI2TORA:0, RATOMI2:0, SWPMI:0, MI1TORA:0, MI1TOMEMRA:0, PUSHMI1:1, PUSHMI2:1, POPMI1:1, POPMI2:1, PUSHMI1MI2:0, POPMI1MI2:0, CALL: 1, RET:1, PUSHADDR: 2, SBACKTOMI2:2, MI2TOSBACK: 2
 	}

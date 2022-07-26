@@ -293,6 +293,13 @@ export default class Device{
                 this.datamem[stackAddr]++
                 this.cmdAddr+=3;
             break
+            case c.SBACKTOMI2:{
+                console.log('command SBACKTOMI2 '+this.arg1+' '+this.arg2)
+                let stackAddr = this.arg1;
+                let offset = this.arg2
+                this.mi2 = this.datamem[stackAddr+this.datamem[stackAddr]-offset+1]}
+                this.cmdAddr+=3;
+            break
             default:
                 console.log('unknow command')
                 this.cmdAddr++;
