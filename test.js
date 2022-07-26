@@ -240,6 +240,14 @@ if(
         memtosp 0
 
         #logic
+        memspnegoffsettomi2 2
+        pushmi2 0
+        memspnegoffsettomi2 3
+        pushmi2 0
+        popmi2 0
+        swpmi
+        popmi2 0
+        mosumtomi1
 
 
         # clear local vars
@@ -249,7 +257,6 @@ if(
         popmi2 0
 
         # push result
-        ctomi1 3
         pushmi1 0
 
         # push return address
@@ -264,9 +271,9 @@ if(
         pushsp 0
 
         # args = 1, 2
-        ctomi1 1
+        ctomi1 9
         pushmi1 0
-        ctomi1 2
+        ctomi1 7
         pushmi1 0
 
         # return address
