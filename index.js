@@ -368,6 +368,19 @@ export default class Device{
                 this.mi2 = this.datamem[this.sp-this.arg1]
                 this.cmdAddr+=2;
             break
+
+            
+            case c.MI1TOMEMSPNEGOFFSET:
+                console.log('command MI1TOMEMSPNEGOFFSET '+this.arg1)
+                this.datamem[this.sp-this.arg1] = this.mi1
+                this.cmdAddr+=2;
+            break
+
+            case c.MEMSPNEGOFFSETTOMI1:
+                console.log('command MEMSPNEGOFFSETTOMI1 '+this.arg1)
+                this.mi1 = this.datamem[this.sp-this.arg1]
+                this.cmdAddr+=2;
+            break
             
             case c.PUSHSP:
                 console.log('command PUSHSP '+this.arg1)

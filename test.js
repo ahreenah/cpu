@@ -226,72 +226,43 @@ if(
     #    popmi2 5
 
     #######################################################
+    malloc 0 7
+    memtosp 0
 
-    # glogal vars
-    malloc 0 3
-
-    jmp start
-
-    proc1:nop
-        # 1 local var
-        malloc 0 1
-
-        # save stack pointer from mem to register
-        memtosp 0
-
-        #logic
-        memspnegoffsettomi2 2
-        pushmi2 0
-        memspnegoffsettomi2 3
-        pushmi2 0
-        popmi2 0
-        swpmi
-        popmi2 0
-        mosumtomi1
-
-
-        # clear local vars
-        mfree 0 1 
-
-        # save return address to mi2
-        popmi2 0
-
-        # push result
-        pushmi1 0
-
-        # push return address
-        pushmi2 0
-
-        ret 0
+    ctomi1 27
+    pushmi1 0
+    popmi1 0
+    mi1tomemspnegoffset 6
     
+    ctomi1 7
+    pushmi1 0
+    popmi1 0
+    mi1tomemspnegoffset 5
     
-    
-    start: nop
-        # stack pointer
-        pushsp 0
-
-        # args = 1, 2
-        ctomi1 9
-        pushmi1 0
-        ctomi1 7
-        pushmi1 0
-
-        # return address
-        pushaddr 0 5 # second = 5
-        call proc1
-
-        # get res
-        popmi2 0
-
-        # remove args
-        mfree 0 2
-
-        #restore sp
-        popsp 0
-        
-
-
-
+while_ii_begin:nop
+    memspnegoffsettomi1 6
+    pushmi1 0
+    memspnegoffsettomi1 5
+    pushmi1 0
+    popmi2 0
+    popmi1 0
+    pushmi1 0
+    popmi1 0
+jmp.gt while_ii_inside
+jmp while_ii_end
+while_ii_inside: nop
+    memspnegoffsettomi1 6
+    pushmi1 0
+    memspnegoffsettomi1 5
+    pushmi1 0
+    popmi2 0
+    popmi1 0
+    mosubtomi1
+    pushmi1 0
+    popmi1 0
+    mi1tomemspnegoffset 6
+    jmp while_ii_begin
+while_ii_end:nop
     `)
 ){
     
@@ -314,7 +285,7 @@ function runTicks(count){
 }
 
 
-runTicks(50)
+runTicks(90)
 console.log('mem:', d.datamem)
 
 console.log('mi1: ', d.mi1)

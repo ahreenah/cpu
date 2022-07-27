@@ -18,10 +18,12 @@ class HLCompiler{
     variables=[];
     beginCount=0;
     setCode(v){
+        // needn't fix for stack
         this.code=v
         this.textLines = this.code.split('\n')
     }
     clearEmptyLines(){
+        // needn't fix for stack
         this.textLines = this.textLines.map(i=>i.split('#')[0].trim()).filter(i=>i?.length)
         const signs = ['+','-','>','<','==','!=','(',')','[',']',':',',']
         console.log('i',this.textLines)
@@ -58,6 +60,7 @@ class HLCompiler{
         }
     }
     parseExpression(v){
+        // needn't fix for stack
         // only +, -, >, <, <=, >=, !=
         // only one of >, <, <=, >=, != is allowed
         function calculateOrders(s){
@@ -96,6 +99,7 @@ class HLCompiler{
             return tmp
         }
         function oneStep(ordered){
+            // needn't fix for stack
             let maxLevel=0;
             let maxLevelIndex = -1;
             for(let i=0; i<ordered.length; i++){
@@ -121,6 +125,7 @@ class HLCompiler{
         return {left:tree[0],right:tree[2],sign:tree[1].value, type:'EXPRESSION'}
     }
     treetoPolish(v){
+        // needn't fix for stack
         if(v.type=='VALUE')
             return [{type:'VALUE',value:v.value}]
         return [...this.treetoPolish(v.left), ...this.treetoPolish(v.right),{type:'SIGN',value:v.sign}]
@@ -141,6 +146,13 @@ class HLCompiler{
             i.dataMemAddr = addr;
             addr+= baseSizes[i.type]*(i.size??1)
         }
+        let used = 0;
+        for(let i=data.length-1; i>=0; i--){
+            data[i].dataMemAddr = addr;
+            data[i].negStOffset = used + baseSizes[data[i].type]*(data[i].size??1) - 1
+            used+=baseSizes[data[i].type]*(data[i].size??1)
+            addr+= baseSizes[data[i].type]*(data[i].size??1)
+        }
         this.variables=data;
     }
     polishToAsm(v){
@@ -153,7 +165,7 @@ class HLCompiler{
                     res.push('ctomi1 '+i.value)
                 }
                 else{
-                    res.push('memtomi1 '+i.value) // TODO:stack sbacktomi1 
+                    res.push('memspnegoffsettomi1 '+i.value) // TODO:stack sbacktomi1 
                 }
                 res.push('pushmi1 ' + STACK_ADDR)
             }
@@ -170,7 +182,18 @@ class HLCompiler{
         }
         return res;
     }
+    globalMalloc(){
+        this.lines.unshift({
+            text:'malloc ',
+            type:'MALLOC',
+            asm:[
+                'malloc 0 '+(this.variables[0].negStOffset+1),
+                'memtosp 0'
+            ]
+        },)
+    }
     fullAsm(){
+        // needn't fix for stack
         let res = []
         for(let i of this.lines){
             if(i.asm){
@@ -181,6 +204,7 @@ class HLCompiler{
         return res;
     }
     parseLineTypes(){
+        // needn't fix for stack
         let  detectLineType=(s)=>{
             if(s.text=='var begin')
                 return s.type=LineTypes.VAR_BEGIN
@@ -192,6 +216,7 @@ class HLCompiler{
                     s.cond=this.parseExpression(cond)
                     s.condPolish = this.treetoPolish(s.cond)
                     s.condasm = ['while_'+'ii'+'_begin:nop',...this.polishToAsm(s.condPolish)]
+                    s.condasm.push('popmi1 0') // ???
                     let sign = s.condPolish[s.condPolish.length-1].value
                     delete s.cond
                     // вход в цикл
@@ -244,14 +269,15 @@ class HLCompiler{
                 s.rightPolish = this.treetoPolish(s.right)
                 s.asm = this.polishToAsm(s.rightPolish)
                 s.asm.push('popmi1 0')
-                s.asm.push('mi1tomem '+s.left) // TODO:stack
+                s.asm.push('mi1tomemspnegoffset '+s.left) // TODO:stack
                 delete s.right
                 return s.type=LineTypes.EQUATION
             }
         }
-        this.lines.map(i=>({...i,type:detectLineType(i)}))
+        this.lines.map(detectLineType)
     }
     checkBeginEndPairs(){
+        // needn't fix for stack
         let begins=[];
         let count = 1;
         for (let i=0; i<this.lines.length; i++){
@@ -275,19 +301,31 @@ class HLCompiler{
         if(begins.length) throw new Error("END expected")
     }
     insertAddressesToCode(){
+        // needn't fix for stack
         let fullAsm = this.fullAsm()
         for(let i=0; i<fullAsm.length;i++){
             // not working for labeled lines
             let cmd = fullAsm[i].split(' ')[0]
-            if(cmd.startsWith('memto') || cmd.endsWith('tomem')){ // TODO:stack
+            // console.log(cmd)
+            if((cmd.startsWith('memto') || cmd.endsWith('tomem')) && (cmd!='memtosp')){ // TODO:stack
                 let varName = fullAsm[i].split(' ')[1]
                 let varInfo = this.variables.filter(i=>i.name==varName)
                 fullAsm[i]=cmd+' '+varInfo[0].dataMemAddr
+            }
+            if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
+                let varName = fullAsm[i].split(' ')[1]
+                let varInfo = this.variables.filter(i=>i.name==varName)
+                fullAsm[i]=cmd+' '+varInfo[0].negStOffset
+                // console.log("->",fullAsm[i])
+            }
+            else{
+                // console.log('not for me')
             }
         }
         return fullAsm
     }
     insertBeginNumbers(){
+        // needn't fix for stack
         console.log('lines:',this.lines)
         for(let i=0; i< this.lines.length; i++){
             if(this.lines[i].beginId){
@@ -306,26 +344,39 @@ class HLCompiler{
 let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
-    x, y, z : unsigned
+    fact, x, i, j, oldfact : unsigned # 5 4 3
+    t: unsigned[3] 
 end
 
 entry begin
-    x = 1
-    y = 3
-    
 
-    while x > y begin
-        z = z + 1
-        x = x - y
+    x = 5
+    fact = 1
+
+    i = 1
+    while i < x + 1 begin
+        # fact = fact * i
+        oldfact = fact
+        j = 1
+        while j < i begin
+            fact = fact + oldfact
+            j = j + 1
+        end
+        i = i + 1
+
     end
-    
-
 
 end`)
 
 
 import LLCompiler from './compiler.js'
 import Device from './index.js'
+
+const testFlags = {
+    asm:1,
+    hex:1,
+    exec:1
+}
 
 c.clearEmptyLines()
 console.log(c.textLines);
@@ -335,45 +386,59 @@ c.checkBeginEndPairs();
 console.log(JSON.stringify(c.lines.map(i=>({text:i.text, asm:i.asm, ...i})),null,1))
 c.computeVarSection();
 console.log(c.variables)
+c.globalMalloc()
 console.log(c.fullAsm())
-console.log(c.insertAddressesToCode())
-console.log('\n\n+++++++++++++++++++++++++++++++++++++')
+console.log('asdfa')
 console.log("FULL ASM: ")
 console.log('+++++++++++++++++++++++++++++++++++++')
 c.insertBeginNumbers();
 console.log(c.insertAddressesToCode().join('\n'))
-console.log('\n\n+++++++++++++++++++++++++++++++++++++')
-console.log("FULL BYTE CODE: ")
-console.log('+++++++++++++++++++++++++++++++++++++')
+// console.log(c.insertAddressesToCode())
+// console.log('\n\n+++++++++++++++++++++++++++++++++++++')
+// console.log("FULL ASM: ")
+// console.log('+++++++++++++++++++++++++++++++++++++')
+// console.log(c.insertAddressesToCode().join('\n'))
+// console.log('\n\n+++++++++++++++++++++++++++++++++++++')
+// console.log("FULL BYTE CODE: ")
+// console.log('+++++++++++++++++++++++++++++++++++++')
+
 let c1 = new LLCompiler()
 c1.parse(c.insertAddressesToCode().join('\n'))
+
 console.log(c1.getProgmemByteString())
-console.log('\n\n+++++++++++++++++++++++++++++++++++++')
-console.log("EXECUTION RESULT: ")
-console.log('+++++++++++++++++++++++++++++++++++++')
+// console.log('\n\n+++++++++++++++++++++++++++++++++++++')
+// console.log("EXECUTION RESULT: ")
+// console.log('+++++++++++++++++++++++++++++++++++++')
 let d = new Device()
 d.progmem=eval(c1.getProgmemByteString())
-console.log(c1.getProgmemDump().length)
+// console.log(c1.getProgmemDump().length)
 
 
-// do not sythesize
-function runTicks(count){
-    for(let i=0; i<count; i++){
-        d.tick();
-    }
-}
+// // do not sythesize
+// function runTicks(count){
+//     for(let i=0; i<count; i++){
+//         d.tick();
+//     }
+// }
 
 function run(){
     while (d.cmdAddr<c1.getProgmemDump().length){
-
+        console.log('tick')
         d.tick();
+        console.log('mi1: ', d.mi1)
+        console.log('mi2: ',d.mi2)
+        console.log('ra:', d.ra)
+        console.log('sp:', d.sp)
+        console.log('mem:', d.datamem)
     }
 }
 
-// runTicks(200)
-run()
-console.log('mi1: ', d.mi1)
-console.log('mi2: ',d.mi2)
-console.log('mem:', d.datamem)
-console.log('ra:', d.ra)
-// import Device from ".";
+// // runTicks(200)
+if(testFlags.exec){
+    run()
+    console.log('mi1: ', d.mi1)
+    console.log('mi2: ',d.mi2)
+    console.log('mem:', d.datamem)
+    console.log('ra:', d.ra)
+}
+// // import Device from ".";
