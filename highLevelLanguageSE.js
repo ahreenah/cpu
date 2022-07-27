@@ -348,9 +348,10 @@ var begin
     t: unsigned[3] 
 end
 
+
 entry begin
 
-    x = 5
+    x = 4
     fact = 1
 
     i = 1
