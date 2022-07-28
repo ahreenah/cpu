@@ -7,9 +7,16 @@ const LineTypes= {
     EQUATION:"EQUATION",
     TYPE_DEFINITION:"TYPE_DEFINITION",
     END:"END",
+    FUNC_BEGIN:'FUNC_BEGIN',
+    RETURN:'RETURN',
+    FUNCVAR_BEGIN:'FUNCVAR_BEGIN'
 }
 
 const VAR_START_ADDR=21
+
+function assert(v, text){
+    if(!v) throw new Error("Assertion error: "+text)
+}
 
 class HLCompiler{
     code='';
@@ -25,7 +32,7 @@ class HLCompiler{
     clearEmptyLines(){
         // needn't fix for stack
         this.textLines = this.textLines.map(i=>i.split('#')[0].trim()).filter(i=>i?.length)
-        const signs = ['+','-','>','<','==','!=','(',')','[',']',':',',']
+        const signs = ['+','-','>','<','==','!=','(',')','[',']',':',',',';']
         console.log('i',this.textLines)
         signs.map(i=>{
             console.log('sign:',i)
@@ -192,6 +199,59 @@ class HLCompiler{
             ]
         },)
     }
+    parseFunctions(){
+        for(let i of this.lines){
+            if(i.type==LineTypes.FUNC_BEGIN){
+                i.text = i.text.replaceAll(':',' : ')
+                let arr = i.text.split(' ')
+                i.arr = arr
+                i.funcName = i.arr[1]
+                assert(i.arr[0]=='func', "FUNC ERROR")
+                assert(i.arr[2]=='(', "( expected")
+                assert(i.arr[i.arr.length-2]==')', ") expected")
+                assert(i.arr[i.arr.length-1]=='begin', "begin expected")
+                let argSubArray = i.arr.filter((k,num)=>(num>2 && num<(i.arr.length-2)))
+                i.subArray = argSubArray
+                let argStr = i.subArray.join(' ')
+                let argParts = argStr.split(' ; ')
+                let argDict={};
+                i.argParts=argParts;
+                for (let args of argParts){
+                    let names = args.split(' : ')[0].split(', ')
+                    let type = args.split(' : ')[1]
+                    for(let i of names){
+                        if(type.indexOf('[')==-1){
+                            argDict[i.trim()]={type:type.split('[')[0].trim(),size:1}
+                        }else{
+                            argDict[i.trim()]={
+                                type:type.split('[')[0].trim(),
+                                size:parseInt(type.split('[')[1].split(']')[0].trim())
+                            }
+                        }
+                    }
+                }
+                i.args = argDict
+                delete i.argSubArray
+                delete i.argParts
+                delete i.arr
+                delete i.subArray
+                delete i.argStr
+            }
+        }
+    }
+    funcLocalMalloc(){
+        for(let i=0 ;i<this.lines.length; i++){
+            if(this.lines[i].type==LineTypes.VAR_BEGIN){
+                if(this.lines?.[i-1]?.type==LineTypes.FUNC_BEGIN){
+                    console.log('IT IS:')
+                    this.lines[i].type=LineTypes.FUNCVAR_BEGIN
+                    // while(true);
+                    // this.lines[i]={}
+                }
+            }
+        }
+        
+    }
     fullAsm(){
         // needn't fix for stack
         let res = []
@@ -206,6 +266,12 @@ class HLCompiler{
     parseLineTypes(){
         // needn't fix for stack
         let  detectLineType=(s)=>{
+            if(s.text.startsWith('func')){
+                return s.type=LineTypes.FUNC_BEGIN
+            }
+            if(s.text.startsWith('return')){
+                return s.type=LineTypes.RETURN
+            }
             if(s.text=='var begin')
                 return s.type=LineTypes.VAR_BEGIN
             if(s.text=='entry begin')
@@ -348,6 +414,15 @@ var begin
     t: unsigned[3] 
 end
 
+func sum ( a, b: unsigned; c: unsigned[3] ) begin
+    var begin 
+        x: unsigned
+    end
+
+    return a + b
+end
+
+
 
 entry begin
 
@@ -383,9 +458,13 @@ c.clearEmptyLines()
 console.log(c.textLines);
 console.log(c.lines);
 c.parseLineTypes();
+console.log(c.lines);
+c.computeVarSection();
+c.parseFunctions()
+c.funcLocalMalloc();
 c.checkBeginEndPairs();
 console.log(JSON.stringify(c.lines.map(i=>({text:i.text, asm:i.asm, ...i})),null,1))
-c.computeVarSection();
+while(1){}
 console.log(c.variables)
 c.globalMalloc()
 console.log(c.fullAsm())
