@@ -358,6 +358,7 @@ class HLCompiler{
                 return s.type=LineTypes.FUNC_BEGIN
             }
             if(s.text.startsWith('return')){
+                s.asm=['memspnegoffsettomi1 '+s.text.substr(7)]
                 return s.type=LineTypes.RETURN
             }
             if(s.text=='var begin')
@@ -537,15 +538,14 @@ var begin
     t: unsigned[3] 
 end
 
-func sum ( a, b: unsigned; c: unsigned[3] ) begin
+func sum ( a, b: unsigned ) begin
     var begin 
-        x, y, z: unsigned
-        t2: unsigned[3] 
+        x: unsigned
     end
 
     x = a + b
 
-    return a + b
+    return x
 end
 
 
@@ -554,7 +554,7 @@ func sub ( a, b: unsigned ) begin
         t: unsigned
     end
 
-    t = 1 + a
+    t = a - b
 
     return t
 end
