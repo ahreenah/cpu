@@ -10,6 +10,7 @@ const LineTypes= {
     FUNC_BEGIN:'FUNC_BEGIN',
     RETURN:'RETURN',
     FUNCVAR_BEGIN:'FUNCVAR_BEGIN',
+    FUNC_CALL:"FUNC_CALL",
     FUNC_END:"FUNC_END"
 }
 
@@ -418,6 +419,37 @@ class HLCompiler{
             if(s.text=='end'){
                 return s.type=LineTypes.END
             }
+            if(s.text.indexOf('(')!=-1){
+                s.left = s.text.split('=')[0].trim()
+
+                s.right = s.text.split('=')[1].trim()
+                s.functionName = s.right.split('(')[0].trim()
+                s.args = s.right.split('(')[1].split(')')[0].split(',').map(i=>i.trim())
+                s.asm=[]
+                //stack pointer
+                s.asm.push('pushsp 0')
+                // args
+                for(let i of s.args){
+                    s.asm.push('memspnegoffsettomi1 '+i)
+                    s.asm.push('pushmi1 0')
+                }
+                s.asm.push('pushaddr 0 5')
+                s.asm.push('call func_'+s.functionName+'_begin')
+                //res
+                s.asm.push('popmi2 0')
+                // clear args
+                for(let i of s.args){
+                    s.asm.push('popmi1 0')
+                }
+                s.asm.push('popsp 0')
+                s.asm.push('mi2tomemspnegoffset '+s.left)// s.rightPolish = this.treetoPolish(s.right)
+                // s.asm = this.polishToAsm(s.rightPolish)
+                
+                // s.asm.push('popmi1 0')
+                // s.asm.push('mi1tomemspnegoffset '+s.left) // TODO:stack
+                delete s.right
+                return s.type=LineTypes.FUNC_CALL
+            }
             if(s.text.indexOf('=')!=-1){
                 s.left = s.text.split('=')[0].trim()
                 s.right = this.parseExpression(s.text.split('=')[1].trim())
@@ -504,7 +536,7 @@ class HLCompiler{
                         if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
                             let varName = i.asm[num].split(' ')[1]
                             let varInfo = currentAddressSpace.filter(i=>i.name==varName)
-                            i.asm[num]=cmd+' '+(varInfo[0]?.negOffset ??'func!)')
+                            i.asm[num]=cmd+' '+(varInfo[0]?.negOffset ??'func!)')+'#atd'
                             // console.log("->",fullAsm[i])
                         }
                     }
@@ -534,18 +566,7 @@ class HLCompiler{
 let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
-    fact, x, i, j, oldfact : unsigned # 5 4 3
-    t: unsigned[3] 
-end
-
-func sum ( a, b: unsigned ) begin
-    var begin 
-        x: unsigned
-    end
-
-    x = a + b
-
-    return x
+    x, y, z: unsigned # 5 4 3
 end
 
 
@@ -554,33 +575,22 @@ func sub ( a, b: unsigned ) begin
         t: unsigned
     end
 
-    t = a - b
+    t = a + b
 
     return t
 end
 
 entry begin
 
-    x = 4
-    fact = 1
-
-    i = 1
-    while i < x + 1 begin
-        # fact = fact * i
-        oldfact = fact
-        j = 1
-        while j < i begin
-            fact = fact + oldfact
-            j = j + 1
-        end
-        i = i + 1
-
-    end
+    x = 2
+    y = 8
+    z = sub(x,y)
 
 end`)
 
 
 import { format } from 'util';
+import { setFlagsFromString } from 'v8';
 import LLCompiler from './compiler.js'
 import Device from './index.js'
 
@@ -612,7 +622,7 @@ console.log('+++++++++++++++++++++++++++++++++++++')
 c.insertBeginNumbers();
 c.insertAddressesToFuncs()
 console.log(c.insertAddressesToCode().join('\n'))
-while(1){}
+// while(1){}
 // console.log(c.insertAddressesToCode())
 // console.log('\n\n+++++++++++++++++++++++++++++++++++++')
 // console.log("FULL ASM: ")
