@@ -475,7 +475,7 @@ class HLCompiler{
             if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
                 let varName = fullAsm[i].split(' ')[1]
                 let varInfo = this.variables.filter(i=>i.name==varName)
-                fullAsm[i]=cmd+' '+(varInfo[0]?.negStOffset ??'func!)')
+                fullAsm[i]=cmd+' '+(varInfo[0]?.negStOffset ??varName) // TODO: CHECK
                 // console.log("->",fullAsm[i])
             }
             else{
@@ -508,7 +508,7 @@ class HLCompiler{
                         }
                     }
                     console.log('computed',i)
-                    if(i.type!='FUNC_BEGIN')while(true){}
+                    // if(i.type!='FUNC_BEGIN')while(true){}
                 }
             }
         }
