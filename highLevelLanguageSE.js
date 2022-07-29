@@ -458,7 +458,7 @@ class HLCompiler{
             if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
                 let varName = fullAsm[i].split(' ')[1]
                 let varInfo = this.variables.filter(i=>i.name==varName)
-                fullAsm[i]=cmd+' '+varInfo[0].negStOffset
+                fullAsm[i]=cmd+' '+(varInfo[0]?.negStOffset ??'func!)')
                 // console.log("->",fullAsm[i])
             }
             else{
@@ -506,7 +506,9 @@ func sub ( a, b: unsigned ) begin
         t: unsigned
     end
 
-    return a + b
+    t = 1 + a
+
+    return t
 end
 
 entry begin
@@ -555,12 +557,12 @@ console.log(JSON.stringify(c.lines.map(i=>({text:i.text, asm:i.asm, ...i})),null
 console.log(c.variables)
 c.globalMalloc()
 console.log(c.fullAsm())
-while(1){}
 console.log('asdfa')
 console.log("FULL ASM: ")
 console.log('+++++++++++++++++++++++++++++++++++++')
 c.insertBeginNumbers();
 console.log(c.insertAddressesToCode().join('\n'))
+while(1){}
 // console.log(c.insertAddressesToCode())
 // console.log('\n\n+++++++++++++++++++++++++++++++++++++')
 // console.log("FULL ASM: ")
