@@ -9,7 +9,8 @@ const LineTypes= {
     END:"END",
     FUNC_BEGIN:'FUNC_BEGIN',
     RETURN:'RETURN',
-    FUNCVAR_BEGIN:'FUNCVAR_BEGIN'
+    FUNCVAR_BEGIN:'FUNCVAR_BEGIN',
+    FUNC_END:"FUNC_END"
 }
 
 const VAR_START_ADDR=21
@@ -274,6 +275,8 @@ class HLCompiler{
                         currentOffset+=parseInt(i.localVars[j].size);
                     }
                 }
+                let localVarNames=Object.keys(i.localVars)
+                i.localVarsArr = localVarNames.map(k=>({name:k,...i.localVars[k]}))
 
                 currentOffset+=1;
                 
@@ -282,6 +285,46 @@ class HLCompiler{
                         i.args[j].negOffset = parseInt(i.args[j].size)+currentOffset - 1;
                         currentOffset+=parseInt(i.args[j].size);
                     }
+                }
+            }
+        }
+    }
+    funcBeginAsm(){
+        for(let i of this.lines){
+            if(i.type==LineTypes.FUNC_BEGIN){
+                i.asm=[
+                    //start
+                    'jmp func_'+i.funcName+'_end',
+                    'func_'+i.funcName+'_begin: nop',
+                    '   malloc 0 '+i.localVarsArr[0].negOffset,
+
+                ]
+            }
+        }
+    }
+    funcEndAsm(){
+        for(let i of this.lines){
+            if(i.type==LineTypes.END){
+                let begin = this.lines.filter(j=>(j.type==LineTypes.FUNC_BEGIN && j.beginId==i.beginId))[0]
+                console.log('begin:',begin)
+                if(begin && (begin.type==LineTypes.FUNC_BEGIN)){
+                    console.log(begin, i.beginId)
+                    // console.log(this.lines)
+                    // while(1);
+                    i.asm=[
+                        //start
+                        '   mfree 0 '+begin.localVarsArr[0].negOffset,
+                        //save return address
+                        '   popmi2 0',
+                        // push res
+                        '   pushmi1 0',
+                        // put return adress back
+                        '   pushmi2 0',
+                        // end
+                        '   ret 0',
+                        'func_'+begin.funcName+'_end: nop'
+                    ]
+                    i.type=LineTypes.FUNC_END
                 }
             }
         }
@@ -450,7 +493,7 @@ end
 
 func sum ( a, b: unsigned; c: unsigned[3] ) begin
     var begin 
-        x, y: unsigned
+        x, y, z: unsigned
         t2: unsigned[3] 
     end
 
@@ -458,6 +501,13 @@ func sum ( a, b: unsigned; c: unsigned[3] ) begin
 end
 
 
+func sub ( a, b: unsigned ) begin
+    var begin 
+        t: unsigned
+    end
+
+    return a + b
+end
 
 entry begin
 
@@ -499,11 +549,13 @@ c.parseFunctions()
 c.funcLocalMalloc();
 c.checkBeginEndPairs();
 c.localVarOffset()
+c.funcBeginAsm()
+c.funcEndAsm()
 console.log(JSON.stringify(c.lines.map(i=>({text:i.text, asm:i.asm, ...i})),null,1))
-while(1){}
 console.log(c.variables)
 c.globalMalloc()
 console.log(c.fullAsm())
+while(1){}
 console.log('asdfa')
 console.log("FULL ASM: ")
 console.log('+++++++++++++++++++++++++++++++++++++')
