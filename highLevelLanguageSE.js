@@ -286,6 +286,13 @@ class HLCompiler{
                         currentOffset+=parseInt(i.args[j].size);
                     }
                 }
+                let argNames=Object.keys(i.args)
+                i.argsArr = argNames.map(k=>({name:k,...i.args[k]}))
+
+                i.availableMemory=[
+                    ...i.argsArr.map(i=>({...i, type:'ARGUMENT'})),
+                    ...i.localVarsArr?.map(i=>({...i, type:'LOCAL_VAR', size:parseInt(i.size)})),
+                ]
             }
         }
     }
@@ -324,6 +331,10 @@ class HLCompiler{
                         '   ret 0',
                         'func_'+begin.funcName+'_end: nop'
                     ]
+                    console.log('start, stop:',this.lines.indexOf(begin), this.lines.indexOf(i))
+                    for (let t = this.lines.indexOf(begin); t<=this.lines.indexOf(i); t++){
+                        this.lines[t].isInsideFunc = true
+                    }
                     i.type=LineTypes.FUNC_END
                 }
             }
@@ -450,11 +461,17 @@ class HLCompiler{
             // not working for labeled lines
             let cmd = fullAsm[i].split(' ')[0]
             // console.log(cmd)
+
+            // if()
+
+            // absolute mem
             if((cmd.startsWith('memto') || cmd.endsWith('tomem')) && (cmd!='memtosp')){ // TODO:stack
                 let varName = fullAsm[i].split(' ')[1]
                 let varInfo = this.variables.filter(i=>i.name==varName)
                 fullAsm[i]=cmd+' '+varInfo[0].dataMemAddr
             }
+
+            // relative stack mem
             if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
                 let varName = fullAsm[i].split(' ')[1]
                 let varInfo = this.variables.filter(i=>i.name==varName)
@@ -466,6 +483,24 @@ class HLCompiler{
             }
         }
         return fullAsm
+    }
+    insertAddressesToFuncs(){
+        let currentAddressSpace={}
+        for(let i of this.lines){
+            if(i.type==LineTypes.FUNC_BEGIN){
+                console.log('found function')
+                console.log(i.availableMemory)
+                while(true){}
+            }
+            if(i.isInsideFunc){
+                if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
+                    let varName = fullAsm[i].split(' ')[1]
+                    let varInfo = this.variables.filter(i=>i.name==varName)
+                    fullAsm[i]=cmd+' '+(varInfo[0]?.negStOffset ??'func!)')
+                    // console.log("->",fullAsm[i])
+                }
+            }
+        }
     }
     insertBeginNumbers(){
         // needn't fix for stack
@@ -532,6 +567,7 @@ entry begin
 end`)
 
 
+import { format } from 'util';
 import LLCompiler from './compiler.js'
 import Device from './index.js'
 
@@ -561,6 +597,7 @@ console.log('asdfa')
 console.log("FULL ASM: ")
 console.log('+++++++++++++++++++++++++++++++++++++')
 c.insertBeginNumbers();
+c.insertAddressesToFuncs()
 console.log(c.insertAddressesToCode().join('\n'))
 while(1){}
 // console.log(c.insertAddressesToCode())
