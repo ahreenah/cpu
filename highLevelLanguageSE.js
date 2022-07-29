@@ -490,14 +490,25 @@ class HLCompiler{
             if(i.type==LineTypes.FUNC_BEGIN){
                 console.log('found function')
                 console.log(i.availableMemory)
-                while(true){}
+                currentAddressSpace = i.availableMemory
+                // while(true){}
             }
             if(i.isInsideFunc){
-                if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
-                    let varName = fullAsm[i].split(' ')[1]
-                    let varInfo = this.variables.filter(i=>i.name==varName)
-                    fullAsm[i]=cmd+' '+(varInfo[0]?.negStOffset ??'func!)')
-                    // console.log("->",fullAsm[i])
+                console.log(i)
+                if(i.asm){
+                    console.log('found parseable string',i)
+                    for(let num =0; num< i.asm.length; num++){
+                        console.log('line')
+                        let cmd = i.asm[num].split(' ')[0]
+                        if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
+                            let varName = i.asm[num].split(' ')[1]
+                            let varInfo = currentAddressSpace.filter(i=>i.name==varName)
+                            i.asm[num]=cmd+' '+(varInfo[0]?.negOffset ??'func!)')
+                            // console.log("->",fullAsm[i])
+                        }
+                    }
+                    console.log('computed',i)
+                    if(i.type!='FUNC_BEGIN')while(true){}
                 }
             }
         }
@@ -531,6 +542,8 @@ func sum ( a, b: unsigned; c: unsigned[3] ) begin
         x, y, z: unsigned
         t2: unsigned[3] 
     end
+
+    x = a + b
 
     return a + b
 end
