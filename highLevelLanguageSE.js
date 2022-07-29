@@ -245,12 +245,46 @@ class HLCompiler{
                 if(this.lines?.[i-1]?.type==LineTypes.FUNC_BEGIN){
                     console.log('IT IS:')
                     this.lines[i].type=LineTypes.FUNCVAR_BEGIN
+                    let j = i+1;
+                    this.lines[i-1].localVars={}
+                    while(this.lines[j].type==LineTypes.TYPE_DEFINITION){
+                        for (let varName of this.lines[j].data.variableNames)
+                            this.lines[i-1].localVars[varName]={
+                                type:this.lines[j].data.variable_type,
+                                size:this.lines[j].data.size??1
+                            }
+
+                        j++
+                    }
                     // while(true);
                     // this.lines[i]={}
                 }
             }
         }
         
+    }
+    localVarOffset(){
+        for(let i of this.lines){
+            if(i.type==LineTypes.FUNC_BEGIN){
+                let currentOffset = 1;
+                
+                if(i.localVars){
+                    for(let j of Object.keys(i.localVars).reverse()){
+                        i.localVars[j].negOffset = parseInt(i.localVars[j].size)+currentOffset - 1;
+                        currentOffset+=parseInt(i.localVars[j].size);
+                    }
+                }
+
+                currentOffset+=1;
+                
+                if(i.args){
+                    for(let j of Object.keys(i.args).reverse()){
+                        i.args[j].negOffset = parseInt(i.args[j].size)+currentOffset - 1;
+                        currentOffset+=parseInt(i.args[j].size);
+                    }
+                }
+            }
+        }
     }
     fullAsm(){
         // needn't fix for stack
@@ -416,7 +450,8 @@ end
 
 func sum ( a, b: unsigned; c: unsigned[3] ) begin
     var begin 
-        x: unsigned
+        x, y: unsigned
+        t2: unsigned[3] 
     end
 
     return a + b
@@ -463,6 +498,7 @@ c.computeVarSection();
 c.parseFunctions()
 c.funcLocalMalloc();
 c.checkBeginEndPairs();
+c.localVarOffset()
 console.log(JSON.stringify(c.lines.map(i=>({text:i.text, asm:i.asm, ...i})),null,1))
 while(1){}
 console.log(c.variables)
