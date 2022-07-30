@@ -204,7 +204,8 @@ class HLCompiler{
     parseFunctions(){
         for(let i of this.lines){
             if(i.type==LineTypes.FUNC_BEGIN){
-                i.text = i.text.replaceAll(':',' : ')
+                // while(i.text.indexOf(':')!=-1)
+                    i.text = i.text.replace(/\:/g,' : ')
                 let arr = i.text.split(' ')
                 i.arr = arr
                 i.funcName = i.arr[1]
@@ -272,7 +273,7 @@ class HLCompiler{
                 
                 if(i.localVars){
                     for(let j of Object.keys(i.localVars).reverse()){
-                        i.localVars[j].negOffset = parseInt(i.localVars[j].size)+currentOffset - 1;
+                        i.localVars[j].negOffset = parseInt(i.localVars[j].size)+currentOffset - 2;
                         currentOffset+=parseInt(i.localVars[j].size);
                     }
                 }
@@ -283,7 +284,7 @@ class HLCompiler{
                 
                 if(i.args){
                     for(let j of Object.keys(i.args).reverse()){
-                        i.args[j].negOffset = parseInt(i.args[j].size)+currentOffset - 1;
+                        i.args[j].negOffset = parseInt(i.args[j].size)+currentOffset -  2;
                         currentOffset+=parseInt(i.args[j].size);
                     }
                 }
@@ -304,7 +305,8 @@ class HLCompiler{
                     //start
                     'jmp func_'+i.funcName+'_end',
                     'func_'+i.funcName+'_begin: nop',
-                    '   malloc 0 '+i.localVarsArr[0].negOffset,
+                    '   malloc 0 '+(i.localVarsArr[0].negOffset+1),
+                    '   memtosp 0',
 
                 ]
             }
@@ -321,7 +323,7 @@ class HLCompiler{
                     // while(1);
                     i.asm=[
                         //start
-                        '   mfree 0 '+begin.localVarsArr[0].negOffset,
+                        '   mfree 0 '+(begin.localVarsArr[0].negOffset+1),
                         //save return address
                         '   popmi2 0',
                         // push res
@@ -566,11 +568,11 @@ class HLCompiler{
 let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
-    x, y, z: unsigned # 5 4 3
+    x, y, z, t: unsigned # 5 4 3
 end
 
 
-func sub ( a, b: unsigned ) begin
+func sum ( a, b: unsigned ) begin
     var begin 
         t: unsigned
     end
@@ -580,11 +582,45 @@ func sub ( a, b: unsigned ) begin
     return t
 end
 
+
+func sub ( a, b: unsigned ) begin
+    var begin 
+        t: unsigned
+    end
+
+    t = a - b
+
+    return t
+end
+
+func min ( a, b: unsigned ) begin
+    var begin 
+        t: unsigned
+    end
+
+    if a < b begin
+        t = a
+    end
+    if a=b begin
+        t = a
+    end
+    if a > b begin
+        t = b
+    end
+
+    return t
+end
+
+
 entry begin
 
-    x = 2
-    y = 8
+    x = 9
+    y = 7
     z = sub(x,y)
+
+    t = 4
+
+    x = sum(t,z)
 
 end`)
 
@@ -672,3 +708,5 @@ if(testFlags.exec){
     console.log('ra:', d.ra)
 }
 // // import Device from ".";
+
+console.log('end')
