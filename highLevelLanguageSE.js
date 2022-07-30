@@ -594,33 +594,46 @@ func sub ( a, b: unsigned ) begin
 end
 
 func min ( a, b: unsigned ) begin
+# функция не работает потому что неверно попится адрес возврата, надо перепроверять
+# в фунцциях без условий этого бага нет
     var begin 
         t: unsigned
     end
 
+    t = b
     if a < b begin
         t = a
     end
-    if a=b begin
-        t = a
-    end
-    if a > b begin
-        t = b
-    end
-
+    
     return t
 end
 
+
+func complex( i, j: unsigned ) begin
+    var begin
+        res: unsigned
+    end
+    
+    res = i
+    res = res + j
+    res = res + i
+    res = res + j
+    res = res + j
+
+    return res
+end
 
 entry begin
 
     x = 9
     y = 7
-    z = sub(x,y)
 
-    t = 4
-
-    x = sum(t,z)
+    z = complex(x,y)
+    #    z = sub(x,y)
+    #
+    #    t = 4
+    #
+    #    x = sum(t,z)
 
 end`)
 
@@ -691,11 +704,11 @@ function run(){
     while (d.cmdAddr<c1.getProgmemDump().length){
         console.log('tick')
         d.tick();
-        console.log('mi1: ', d.mi1)
-        console.log('mi2: ',d.mi2)
-        console.log('ra:', d.ra)
-        console.log('sp:', d.sp)
-        console.log('mem:', d.datamem)
+        console.log('mi1: ', d.mi1,'\tmi2:',d.mi2,'\tra',d.ra,'\tsp:', d.sp)
+        // console.log('mi2: ',d.mi2)
+        // console.log('ra:', d.ra)
+        // console.log('sp:', d.sp)
+        console.log('mem:', d.datamem.filter((i,num)=>num<27))
     }
 }
 
@@ -704,7 +717,7 @@ if(testFlags.exec){
     run()
     console.log('mi1: ', d.mi1)
     console.log('mi2: ',d.mi2)
-    console.log('mem:', d.datamem)
+    console.log('mem:', d.datamem.filter((i,num)=>num<27))
     console.log('ra:', d.ra)
 }
 // // import Device from ".";
