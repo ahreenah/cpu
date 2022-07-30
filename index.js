@@ -94,6 +94,7 @@ export default class Device{
     mi1     = 0;
     mi2     = 0;
     ra      = 0;
+    sp      = 0;
 
     // assign
     get commandCode(){ return (this.progmem[this.cmdAddr]/256)>>0 }
@@ -219,7 +220,7 @@ export default class Device{
             break
             case c.MI2TORA:
                 console.log("command MI2TORA");
-                this.mi2=this.ra;
+                this.ra=this.mi2;
                 this.cmdAddr+=1;
             break
             case c.RATOMI2:
@@ -272,6 +273,130 @@ export default class Device{
                 this.datamem[this.arg1]--
                 this.cmdAddr+=2;
             break
+            case c.CALL:
+                console.log('command CALL '+this.arg1+' '+this.arg2)
+                // jump
+                this.cmdAddr=this.arg1;
+            break
+            case c.RET:
+                let addr = this.arg1;
+                console.log('command RET '+this.arg1+' '+this.datamem[this.arg1])
+                this.cmdAddr = this.datamem[this.arg1+this.datamem[this.arg1]]
+                console.log('DEC ADDR '+addr)
+                this.datamem[addr]--;
+            break
+            case c.PUSHADDR:
+                console.log('command PUSHADDR '+this.arg1+' '+this.arg2)
+                let stackAddr = this.arg1;
+                let offset = this.arg2
+                
+                this.datamem[stackAddr+this.datamem[stackAddr]+1] = this.cmdAddr+offset
+                this.datamem[stackAddr]++
+                this.cmdAddr+=3;
+            break
+            case c.SBACKTOMI2:{
+                    console.log('command SBACKTOMI2 '+this.arg1+' '+this.arg2)
+                    let stackAddr = this.arg1;
+                    let offset = this.arg2
+                    this.mi2 = this.datamem[stackAddr+this.datamem[stackAddr]-offset+1]
+                }
+                this.cmdAddr+=3;
+            break
+            case c.MI2TOSBACK:{
+                    console.log('command MI2TOSBACK '+this.arg1+' '+this.arg2)
+                    let stackAddr = this.arg1;
+                    let offset = this.arg2
+                    this.datamem[stackAddr+this.datamem[stackAddr]-offset+1] = this.mi2 
+                }
+                this.cmdAddr+=3;
+            break
+            case c.MALLOC:{
+                    console.log('command MALLOC '+this.arg1+' '+this.arg2)
+                    let stackAddr = this.arg1;
+                    let size = this.arg2
+                    this.datamem[stackAddr] += size 
+                }
+                this.cmdAddr+=3;
+            break
+            case c.MFREE:{
+                    console.log('command MFREE '+this.arg1+' '+this.arg2)
+                    let stackAddr = this.arg1;
+                    let size = this.arg2
+                    this.datamem[stackAddr] -= size 
+                }
+                this.cmdAddr+=3;
+            break
+            
+		    case c.MEMTOSP:
+                console.log('command MEMTOSP '+this.arg1)
+                this.sp = this.datamem[this.arg1]
+                this.cmdAddr+=2;
+            break
+            
+            case c.MEMSPOFFSETTOMI1:
+                console.log('command MEMSPOFFSETTOMI1 '+this.arg1)
+                this.mi1 = this.datamem[this.sp+this.arg1]
+                this.cmdAddr+=2;
+            break
+            
+            case c.MEMSPOFFSETTOMI2:
+                console.log('command MEMSPOFFSETTOMI2 '+this.arg1)
+                this.mi2 = this.datamem[this.sp+this.arg1]
+                this.cmdAddr+=2;
+            break
+            
+            case c.MI1TOMEMSPOFFSET:
+                console.log('command MI1TOMEMSPOFFSET '+this.arg1)
+                this.datamem[this.sp+this.arg1] = this.mi1
+                this.cmdAddr+=2;
+            break
+            
+            case c.MI2TOMEMSPOFFSET:
+                console.log('command MI2TOMEMSPOFFSET '+this.arg1)
+                this.datamem[this.sp+this.arg1] = this.mi2
+                this.cmdAddr+=2;
+            break
+
+            case c.MI2TOMEMSPNEGOFFSET:
+                console.log('command MI2TOMEMSPNEGOFFSET '+this.arg1)
+                this.datamem[this.sp-this.arg1] = this.mi2
+                this.cmdAddr+=2;
+            break
+
+            case c.MEMSPNEGOFFSETTOMI2:
+                console.log('command MEMSPNEGOFFSETTOMI2 '+this.arg1)
+                this.mi2 = this.datamem[this.sp-this.arg1]
+                this.cmdAddr+=2;
+            break
+
+            
+            case c.MI1TOMEMSPNEGOFFSET:
+                console.log('command MI1TOMEMSPNEGOFFSET '+this.arg1)
+                this.datamem[this.sp-this.arg1] = this.mi1
+                this.cmdAddr+=2;
+            break
+
+            case c.MEMSPNEGOFFSETTOMI1:
+                console.log('command MEMSPNEGOFFSETTOMI1 '+this.arg1)
+                this.mi1 = this.datamem[this.sp-this.arg1]
+                this.cmdAddr+=2;
+            break
+            
+            case c.PUSHSP:
+                console.log('command PUSHSP '+this.arg1)
+                this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.sp
+                this.datamem[this.arg1]++
+                this.cmdAddr+=2;
+            break
+            
+            case c.POPSP:
+                console.log('command POPSP '+this.arg1)
+                this.sp = this.datamem[this.arg1+this.datamem[this.arg1]]
+                this.datamem[this.arg1]--
+                this.cmdAddr+=2;
+            break
+
+            
             default:
                 console.log('unknow command')
                 this.cmdAddr++;

@@ -153,7 +153,7 @@ class HLCompiler{
                     res.push('ctomi1 '+i.value)
                 }
                 else{
-                    res.push('memtomi1 '+i.value)
+                    res.push('memtomi1 '+i.value) // TODO:stack sbacktomi1 
                 }
                 res.push('pushmi1 ' + STACK_ADDR)
             }
@@ -180,144 +180,6 @@ class HLCompiler{
         }
         return res;
     }
-    /*
-        x * 4 + y * 3 == 20
-
-        {
-            "left": {
-                "type": "EXPRESSION",
-                "left": {
-                    "type": "EXPRESSION",
-                    "left": {
-                        "type": "VALUE",
-                        "value": "x"
-                    },
-                    "sign": "*",
-                    "right": {
-                        "type": "VALUE",
-                        "value": "4"
-                    }
-                },
-                "sign": "+",
-                "right": {
-                    "type": "EXPRESSION",
-                    "left": {
-                        "type": "VALUE",
-                        "value": "y"
-                    },
-                    "sign": "*",
-                    "right": {
-                        "type": "VALUE",
-                        "value": "3"
-                    }
-                }
-            },
-            "right": {
-                "type": "VALUE",
-                "value": "20"
-            },
-            "sign": "==",
-            "type": "EXPRESSION"
-        }
-
-        ==
-            20
-            +
-                *
-                    X
-                    4
-                *
-                    Y
-                    3
-        
-        x 4 * y 3 * + 20 ==
-        
-        push x
-        push 4
-        pop mi2
-        pop mi1
-        momultomi1 
-        push mi1
-        push y
-        push 3
-        pop mi2
-        pop mi1
-        momultomi1
-        push mi1
-        pop mi2
-        pop mi1
-        mosumtomi1
-        push mi1
-        push 20
-        jmp.eq inside
-        jmp end
-        inside:
-            // code
-        end:
-
-
-    */
-    
-    /*
-        expression:
-
-        x + y * 3 == 2
-
-        tree:
-
-        {
-            "left": {
-                "type": "EXPRESSION",
-                "left": {
-                    "type": "VALUE",
-                    "value": "x"
-                },
-                "sign": "+",
-                "right": {
-                    "type": "EXPRESSION",
-                    "left": {
-                        "type": "VALUE",
-                        "value": "y"
-                    },
-                    "sign": "*",
-                    "right": {
-                        "type": "VALUE",
-                        "value": "3"
-                    }
-                }
-            },
-            "right": {
-                "type": "VALUE",
-                "value": "2"
-            },
-            "sign": "==",
-            "type": "EXPRESSION"
-        }
-
-        x y 3 * + 2 ==
-
-        push x
-        push y
-        push 3
-        pop mi2
-        pop mi1
-        momultomi1
-        push mi1
-        pop mi2
-        pop mi1
-        mosumtomi1
-        push mi1
-        push 2
-        pop mi2
-        pop mi1
-        jmp.eq inside
-        jmp end
-        inside;
-        // code
-        end:
-
-    */
-     
     parseLineTypes(){
         let  detectLineType=(s)=>{
             if(s.text=='var begin')
@@ -382,8 +244,7 @@ class HLCompiler{
                 s.rightPolish = this.treetoPolish(s.right)
                 s.asm = this.polishToAsm(s.rightPolish)
                 s.asm.push('popmi1 0')
-                s.asm.push('mi1tomem '+s.left)
-
+                s.asm.push('mi1tomem '+s.left) // TODO:stack
                 delete s.right
                 return s.type=LineTypes.EQUATION
             }
@@ -418,7 +279,7 @@ class HLCompiler{
         for(let i=0; i<fullAsm.length;i++){
             // not working for labeled lines
             let cmd = fullAsm[i].split(' ')[0]
-            if(cmd.startsWith('memto') || cmd.endsWith('tomem')){
+            if(cmd.startsWith('memto') || cmd.endsWith('tomem')){ // TODO:stack
                 let varName = fullAsm[i].split(' ')[1]
                 let varInfo = this.variables.filter(i=>i.name==varName)
                 fullAsm[i]=cmd+' '+varInfo[0].dataMemAddr
@@ -450,12 +311,12 @@ end
 
 entry begin
     x = 1
-    y = 0
+    y = 3
+    
 
-    if x = 2 begin
-        while y < 10 begin
-            y = y + 1
-        end
+    while x > y begin
+        z = z + 1
+        x = x - y
     end
     
     if x = 1 begin
@@ -499,6 +360,7 @@ console.log("EXECUTION RESULT: ")
 console.log('+++++++++++++++++++++++++++++++++++++')
 let d = new Device()
 d.progmem=eval(c1.getProgmemByteString())
+console.log(c1.getProgmemDump().length)
 
 
 // do not sythesize
@@ -508,7 +370,15 @@ function runTicks(count){
     }
 }
 
-runTicks(240)
+function run(){
+    while (d.cmdAddr<c1.getProgmemDump().length){
+
+        d.tick();
+    }
+}
+
+// runTicks(200)
+run()
 console.log('mi1: ', d.mi1)
 console.log('mi2: ',d.mi2)
 console.log('mem:', d.datamem)

@@ -1,0 +1,69 @@
+# variable initialization
+var begin
+    x, y, z : unsigned;
+    ar      : unsigned [10];
+end
+
+# alternative to int main (entry point)
+entry begin
+    x = 3
+    y = 4
+    
+    if x>y begin
+        z = x
+        x = y
+        y = z
+    end
+
+    z = y
+    
+    while x>1 begin
+        z = z + y
+        x = x - 1
+    end
+
+end
+
+
+##[
+    <digit>               ::= 0|1|2|3|4|5|6|7|8|9
+    <number>              ::= <digit> | <number><digit>
+    <letter>              ::= a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z
+    <sign>                ::= +|-
+    <expression>          ::= <name> | <number> | <expression> <sign> <expression>
+    <name>                ::= <letter> | <name> <letter> | <name> <digit>
+    <name-list>           ::= <name> | <name-list>"," <name>
+    <type>                ::= "unsigned" | "unsigned" "[" <number> "]"
+    <var-definition>      ::= <name-list> ":" <type>
+    <mult-var-definition> ::= <var-definition> | <mult-var-definition> ";" <var-definition> 
+    <var-section>         ::= "var begin" <mult-var-definition> "end"
+
+    <executable-line>     ::= <name> "=" <expression> ";"
+    <executable-part>     ::= <executable-line> | <loop> | <condition>
+    <condition>           ::= "if" <expression> "begin" <executable-cpode> "end"
+    <loop>                ::= "while" <expression> "begin" <executable-cpode> "end" 
+    <executable-code>     ::= <executable-part> | <executable-code> <executable-part>
+    <entry-section>       ::= "entry begin" <executable-code> "end"
+    
+    code                  ::= <var-section> <entry-section>
+]
+
+упрощеннвый вариант, парсинг по строкам
+ 
+##[
+    <digit>               ::= 0|1|2|3|4|5|6|7|8|9
+    <number>              ::= <digit> | <number><digit>
+    <letter>              ::= a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z
+    <name>                ::= <letter> | <name> <letter> | <name> <digit>
+    <sign>                ::= +|-|>|<|==|!=
+    <expression>          ::= <name> | <number> | <expression> <sign> <expression>
+    <assign>              ::= <name> = <expression>
+    <while-start>         ::= "while" <expression> "begin"
+    <if-start>            ::= "if" <expression> "begin"
+    <end>                 ::= "end"
+    <entry-begin>         ::= "entry begin"
+    <var-begin>           ::= "var begin"
+    <name-list>           ::= <name> | <name-list>"," <name>
+    <type>                ::= "unsigned" | "unsigned" "[" <number> "]"
+    <type-definition>     ::= <name-list> ":" <type>
+]

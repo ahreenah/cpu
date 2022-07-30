@@ -109,11 +109,19 @@ export default class Compiler{
         }
     }
     computeJmpAddress(){
+        console.log('parsing computeJmpAddress')
         for(let i of this.lines){
             if(i.command=='jmp'){
+                console.log('parsing jmp')
                 if(!this.labels[i.args[0]])
                     throw new Error("No such label: "+i.args[0])
                 i.args[0]=this.labels[i.args[0]]
+            }
+            if(i.command=='call'){
+                console.log('parsing call')
+                if(!this.labels[i.args[1]])
+                    throw new Error("No such label: "+i.args[1])
+                i.args[1]=this.labels[i.args[1]]
             }
         }
     }
@@ -134,6 +142,7 @@ export default class Compiler{
             this.computeLabels()
             this.computeJmpAddress()
             this.argsToHex()
+            return true
         } catch (E){
             console.log('error',E)
         }   
