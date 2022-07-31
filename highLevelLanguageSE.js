@@ -164,7 +164,7 @@ class HLCompiler{
         }
         this.variables=data;
     }
-    polishToAsm(v){
+    polishToAsm(v, isIf){
         let res = [];
         const STACK_ADDR=0
         for(let i of v){
@@ -186,6 +186,8 @@ class HLCompiler{
                     case '-': res.push('mosubtomi1'); break;
                     case '*': res.push('momultomi1'); break;
                 }
+                // TODO: NOT USED IN IF
+                if(!isIf)
                 res.push('pushmi1 ' + STACK_ADDR)
             }
         }
@@ -398,7 +400,7 @@ class HLCompiler{
                     let cond = s.text.split('if ')[1].split(' begin')[0]
                     s.cond=this.parseExpression(cond)
                     s.condPolish = this.treetoPolish(s.cond)
-                    s.condasm = this.polishToAsm(s.condPolish)
+                    s.condasm = this.polishToAsm(s.condPolish, true)
                     let sign = s.condPolish[s.condPolish.length-1].value
                     delete s.cond
                     if(sign=='=')
@@ -615,20 +617,19 @@ func complex( i, j: unsigned ) begin
     end
     
     res = i
-    res = res + j
-    res = res + i
-    res = res + j
-    res = res + j
+    if i < 5 begin
+        res = res + j
+    end
 
     return res
 end
 
 entry begin
 
-    x = 9
-    y = 7
+    x = 90
+    y = 70
 
-    z = complex(x,y)
+    z = min(x,y)
     #    z = sub(x,y)
     #
     #    t = 4
