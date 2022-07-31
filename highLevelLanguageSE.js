@@ -570,7 +570,7 @@ class HLCompiler{
 let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
-    x, y, i, z, t, v, k, p: unsigned
+    x, y, i, z, t, v, k, p, f: unsigned
 end
 
 
@@ -632,18 +632,38 @@ func max ( a, b: unsigned ) begin
     return t
 end
 
+func fib (n: ungigned) begin
+    var begin
+        res, t, t2, k: unsigned
+    end
+
+    if n < 3 begin
+        res = 1
+    end
+
+    if n > 2 begin
+        k = n - 1
+        t = fib(k)
+        k = n - 2
+        t2 = fib(k)
+        res = t + t2
+    end
+    
+    return res
+end
 
 entry begin
 
-    x = 9
+    x = 10
     y = 70
     i = 20
 
-    z = min(x,y)
-    t = max(x,y)
-    v = sum(x,y)
-    k = sub(x, y)
-    p = min3(x,y,i)
+    # z = min(x,y)
+    # t = max(x,y)
+    # v = sum(x,y)
+    # k = sub(x, y)
+    # p = min3(x,y,i)
+    f = fib(x)
     #    z = sub(x,y)
     #
     #    t = 4
