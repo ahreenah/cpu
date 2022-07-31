@@ -667,6 +667,17 @@ func sumtox(n: unsigned) begin
     return res
 end
 
+func looptest(x:unsigned) begin
+    var begin
+        t: unsigned
+    end
+    t = 2
+    while t < 9 begin
+        t = t + 2
+    end
+    return t
+end
+
 entry begin
 
     x = 5
@@ -678,7 +689,7 @@ entry begin
     # p = min3(x,y,i)
     y = sumtox(x)
     i = fib(x)
-    
+    y = looptest(x)
     #    z = sub(x,y)
     #
     #    t = 4
