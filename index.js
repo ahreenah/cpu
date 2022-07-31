@@ -144,6 +144,18 @@ export default class Device{
                     this.mi1 = this.sp - this.arg1; 
                 this.cmdAddr+=2;
             break
+            case c.MEMBYPATOMI1:
+                console.log('command MEMBYPATOMI1, pa=',this.arg1);
+                if(this.execute)
+                    this.mi1 = this.datamem[this.datamem[this.sp - this.arg1]]; 
+                this.cmdAddr+=2;
+            break
+            case c.MI1TOMEMBYPA:
+                console.log('command MI1TOMEMBYPA, pa=',this.arg1);
+                if(this.execute)
+                    this.datamem[this.datamem[this.sp - this.arg1]] = this.mi1; 
+                this.cmdAddr+=2;
+            break
             case c.CTOMI2:
                 console.log('command CTOMI2, c=',this.arg1);
                 if(this.execute)

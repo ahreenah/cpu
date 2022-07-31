@@ -522,7 +522,13 @@ class HLCompiler{
                     fullAsm[i] = cmd + ' ' + varInfo[0].negStOffset
                     // console.log(fullAsm, varInfo)
                     // while(1){}
-                }else{
+                } else if(varName.startsWith('$')){
+                    let varInfo = this.variables.filter(i=>i.name==varName.substr(1))
+                    cmd = cmd.replace('memspnegoffsetto','membypato').replace('tomemspnegoffset','tomembypa')
+                    fullAsm[i] = cmd + ' ' + varInfo[0].negStOffset
+                    // console.log(fullAsm, varInfo)
+                    // while(1){}
+                } else{
                     let varInfo = this.variables.filter(i=>i.name==varName)
                     fullAsm[i]=cmd+' '+(varInfo[0]?.negStOffset ??varName) // TODO: CHECK
                 }
@@ -583,132 +589,22 @@ class HLCompiler{
 let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
-    x, y, i, z, t, v, k, p, f: unsigned
+    x, y, i, t: unsigned
+    k: unsigned[6]
 end
 
-
-func sum ( a, b: unsigned ) begin
-    var begin 
-        t: unsigned
-    end
-
-    t = a + b
-
-    return t
-end
-
-
-func sub ( a, b: unsigned ) begin
-    var begin 
-        t: unsigned
-    end
-
-    t = a - b
-
-    return t
-end
-
-func min ( a, b: unsigned ) begin
-    var begin 
-        t: unsigned
-    end
-
-    t = b
-    if a < b begin
-        t = a
-    end
-    
-    return t
-end
-
-func min3( a, b, c: unsigned ) begin
-    var begin
-        res: unsigned
-    end
-    
-    res = min(a, b)
-    res = min(res, c)
-
-    return res
-end
-
-func max ( a, b: unsigned ) begin
-    var begin 
-        t: unsigned
-    end
-
-    t = b
-    if a > b begin
-        t = a
-    end
-    
-    return t
-end
-
-func fib (n: ungigned) begin
-    var begin
-        res, t, t2, k: unsigned
-    end
-
-    if n < 3 begin
-        res = 1
-    end
-
-    if n > 2 begin
-        k = n - 1
-        t = fib(k)
-        k = n - 2
-        t2 = fib(k)
-        res = t + t2
-    end
-    
-    return res
-end
-
-func sumtox(n: unsigned) begin
-    var begin
-        res, t, arg: unsigned
-    end
-
-    res = 1
-    if n > 1 begin
-        arg = n - 1
-        t = sumtox(arg)
-        res = t + n
-    end
-    
-    return res
-end
-
-func looptest(x:unsigned) begin
-    var begin
-        t: unsigned
-    end
-    t = 2
-    while t < 9 begin
-        t = t + 2
-    end
-    return t
-end
 
 entry begin
 
-    x = 9
-    y = 8
+    x = 1
+    t = 0
 
-    z = min(x,y)
-    t = max(x,y)
-    # v = sum(x,y)
-    # k = sub(x, y)
-    # p = min3(x,y,i)
-    y = 7
-    x = 9
-    i = &x + &y
-    #    z = sub(x,y)
-    #
-    #    t = 4
-    #
-    #    x = sum(t,z)
+    while t < 6 begin
+        i = &k + t
+        $i = x
+        x = x + x
+        t = t + 1
+    end
 
 end`)
 
