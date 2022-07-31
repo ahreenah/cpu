@@ -138,6 +138,12 @@ export default class Device{
                     this.mi1 = this.arg1; 
                 this.cmdAddr+=2;
             break
+            case c.PATOMI1:
+                console.log('command PATOMI1, offset=',this.arg1);
+                if(this.execute)
+                    this.mi1 = this.sp - this.arg1; 
+                this.cmdAddr+=2;
+            break
             case c.CTOMI2:
                 console.log('command CTOMI2, c=',this.arg1);
                 if(this.execute)

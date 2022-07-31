@@ -14,7 +14,7 @@ const LineTypes= {
     FUNC_END:"FUNC_END"
 }
 
-const VAR_START_ADDR=21
+const VAR_START_ADDR=1
 
 function assert(v, text){
     if(!v) throw new Error("Assertion error: "+text)
@@ -79,7 +79,7 @@ class HLCompiler{
                 '>':0,'<':0,'==':0,'!=':0,'<=':0,'>=':0,
                 '+':1,'-':1,
                 '*':2,
-                '->':3
+                '->':3,
             }
             const signs = [...mathSigns, ...comparisonSigns]
             let tokens = s.split(' ')
@@ -434,7 +434,10 @@ class HLCompiler{
                 s.asm.push('pushsp 0')
                 // args
                 for(let i of s.args){
-                    s.asm.push('memspnegoffsettomi1 '+i)
+                    if(isNaN(i))
+                        s.asm.push('memspnegoffsettomi1 '+i)
+                    else
+                        s.asm.push('ctomi1 '+i)
                     s.asm.push('pushmi1 0')
                 }
                 s.asm.push('pushaddr 0 5')
@@ -504,15 +507,25 @@ class HLCompiler{
             // absolute mem
             if((cmd.startsWith('memto') || cmd.endsWith('tomem')) && (cmd!='memtosp')){ // TODO:stack
                 let varName = fullAsm[i].split(' ')[1]
+                
                 let varInfo = this.variables.filter(i=>i.name==varName)
                 fullAsm[i]=cmd+' '+varInfo[0].dataMemAddr
+                
             }
 
             // relative stack mem
             if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
                 let varName = fullAsm[i].split(' ')[1]
-                let varInfo = this.variables.filter(i=>i.name==varName)
-                fullAsm[i]=cmd+' '+(varInfo[0]?.negStOffset ??varName) // TODO: CHECK
+                if(varName.startsWith('&')){
+                    let varInfo = this.variables.filter(i=>i.name==varName.substr(1))
+                    cmd = cmd.replace('memspnegoffsetto','pato')
+                    fullAsm[i] = cmd + ' ' + varInfo[0].negStOffset
+                    // console.log(fullAsm, varInfo)
+                    // while(1){}
+                }else{
+                    let varInfo = this.variables.filter(i=>i.name==varName)
+                    fullAsm[i]=cmd+' '+(varInfo[0]?.negStOffset ??varName) // TODO: CHECK
+                }
                 // console.log("->",fullAsm[i])
             }
             else{
@@ -680,16 +693,17 @@ end
 
 entry begin
 
-    x = 5
+    x = 9
+    y = 8
 
-    # z = min(x,y)
-    # t = max(x,y)
+    z = min(x,y)
+    t = max(x,y)
     # v = sum(x,y)
     # k = sub(x, y)
     # p = min3(x,y,i)
-    y = sumtox(x)
-    i = fib(x)
-    y = looptest(x)
+    y = 7
+    x = 9
+    i = &x + &y
     #    z = sub(x,y)
     #
     #    t = 4
@@ -716,6 +730,8 @@ console.log(c.lines);
 c.parseLineTypes();
 console.log(c.lines);
 c.computeVarSection();
+console.log(c.variables);
+// while(true);
 c.parseFunctions()
 c.funcLocalMalloc();
 c.checkBeginEndPairs();
