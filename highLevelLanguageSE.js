@@ -652,18 +652,33 @@ func fib (n: ungigned) begin
     return res
 end
 
+func sumtox(n: unsigned) begin
+    var begin
+        res, t, arg: unsigned
+    end
+
+    res = 1
+    if n > 1 begin
+        arg = n - 1
+        t = sumtox(arg)
+        res = t + n
+    end
+    
+    return res
+end
+
 entry begin
 
-    x = 10
-    y = 70
-    i = 20
+    x = 5
 
     # z = min(x,y)
     # t = max(x,y)
     # v = sum(x,y)
     # k = sub(x, y)
     # p = min3(x,y,i)
-    f = fib(x)
+    y = sumtox(x)
+    i = fib(x)
+    
     #    z = sub(x,y)
     #
     #    t = 4
