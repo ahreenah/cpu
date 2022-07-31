@@ -570,7 +570,7 @@ class HLCompiler{
 let c = new HLCompiler()
 c.setCode(`# variable initialization
 var begin   
-    x, y, z, t: unsigned # 5 4 3
+    x, y, i, z, t, v, k, p: unsigned
 end
 
 
@@ -596,8 +596,6 @@ func sub ( a, b: unsigned ) begin
 end
 
 func min ( a, b: unsigned ) begin
-# функция не работает потому что неверно попится адрес возврата, надо перепроверять
-# в фунцциях без условий этого бага нет
     var begin 
         t: unsigned
     end
@@ -610,26 +608,42 @@ func min ( a, b: unsigned ) begin
     return t
 end
 
-
-func complex( i, j: unsigned ) begin
+func min3( a, b, c: unsigned ) begin
     var begin
         res: unsigned
     end
     
-    res = i
-    if i < 5 begin
-        res = res + j
-    end
+    res = min(a, b)
+    res = min(res, c)
 
     return res
 end
 
+func max ( a, b: unsigned ) begin
+    var begin 
+        t: unsigned
+    end
+
+    t = b
+    if a > b begin
+        t = a
+    end
+    
+    return t
+end
+
+
 entry begin
 
-    x = 90
+    x = 9
     y = 70
+    i = 20
 
     z = min(x,y)
+    t = max(x,y)
+    v = sum(x,y)
+    k = sub(x, y)
+    p = min3(x,y,i)
     #    z = sub(x,y)
     #
     #    t = 4
