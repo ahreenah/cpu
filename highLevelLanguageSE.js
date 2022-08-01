@@ -660,6 +660,17 @@ func bubblesort(arr, length: unsigned) begin
     return b
 end
 
+func quicksort(arr, length:unsigned) begin
+
+    var begin
+        # left and right elements numbers
+        lnum, rnum: unsigned
+
+        compareTo:unsigned
+    end
+
+end
+
 entry begin
 
     x = 1
