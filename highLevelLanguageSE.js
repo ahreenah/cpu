@@ -633,25 +633,59 @@ func swap(a, b: unsigned) begin
     return q
 end
 
+func bubblesort(arr, length: unsigned) begin
+    var begin
+        i, x, y, xa, ya, j:unsigned
+    end
+
+    i = 0
+    j = 0
+
+    while j<length begin 
+        i = 0
+        while i<length-j begin 
+            xa = arr + i
+            x = $xa
+            ya = arr + i + 1
+            y = $ya
+            if x>y begin
+                $xa = y
+                $ya = x
+            end
+            i = i + 1
+        end
+        j = j+1
+    end
+
+    return b
+end
 
 entry begin
 
     x = 1
     t = 0
 
-    while t < 6 begin
-        i = &k + t
-        $i = x
-        x = x + x
-        t = t + 1
-    end
+        i = &k + 0
+        $i = 5
+        
+        i = &k + 1
+        $i = 2
+        
+        i = &k + 2
+        $i = 10
 
+        i = &k + 3
+        $i = 7
 
-    x = 10
-    y = 20
-    t = &x
-    i = &y
-    i = swap(t, i)
+        i = &k + 4
+        $i = 8
+
+        i = &k + 5
+        $i = 6
+    
+    i = &k
+    t = 5
+    i = bubblesort(i,t)
 
 end`)
 
