@@ -551,6 +551,7 @@ class HLCompiler{
             }
             if(i.isInsideFunc){
                 console.log(i)
+                let foundPointer = 0
                 if(i.asm){
                     console.log('found parseable string',i)
                     for(let num =0; num< i.asm.length; num++){
@@ -558,12 +559,39 @@ class HLCompiler{
                         let cmd = i.asm[num].split(' ')[0]
                         if(cmd.startsWith('memspnegoffsetto') || cmd.endsWith('tomemspnegoffset')){ // TODO:stack
                             let varName = i.asm[num].split(' ')[1]
-                            let varInfo = currentAddressSpace.filter(i=>i.name==varName)
-                            i.asm[num]=cmd+' '+(varInfo[0]?.negOffset ??'func!)')+'#atd'
-                            // console.log("->",fullAsm[i])
+                            /////////////////////////////////////////////////////////
+                            if(varName.startsWith('&')){
+                                let varInfo = currentAddressSpace.filter(i=>i.name==varName.substr(1))
+                                cmd = cmd.replace('memspnegoffsetto','pato')
+                                console.log(i)
+                                i.asm[num] = cmd + ' ' + varInfo[0].negOffset
+                                
+                                // console.log(fullAsm, varInfo)
+                                // console.log(i)
+                                // while(1){}
+                            } else if(varName.startsWith('$')){
+                                let varInfo = currentAddressSpace.filter(i=>i.name==varName.substr(1))
+                                cmd = cmd.replace('memspnegoffsetto','membypato').replace('tomemspnegoffset','tomembypa')
+                                i.asm[num] = cmd + ' ' + varInfo[0].negOffset
+                                // foundPointer = true
+                                // console.log(fullAsm, varInfo)
+                                console.log('insode? ',i)
+                                // while(1){}
+                                // console.log(fullAsm, varInfo)
+                                // while(1){}
+                            } else{
+                                let varInfo = currentAddressSpace.filter(i=>i.name==varName)
+                                // fullAsm[i]=cmd+' '+(varInfo[0]?.negStOffset ??varName) // TODO: CHECK
+                                i.asm[num]=cmd+' '+(varInfo[0]?.negOffset ??'func!)')+'#atd'
+                            }
+                            /////////////////////////////////////////////////////////
+                            // let varInfo = currentAddressSpace.filter(i=>i.name==varName)
+                            // i.asm[num]=cmd+' '+(varInfo[0]?.negOffset ??'func!)')+'#atd'
+                            ///////////////////////////////////////////////////////
                         }
                     }
                     console.log('computed',i)
+                    while(foundPointer){}
                     // if(i.type!='FUNC_BEGIN')while(true){}
                 }
             }
@@ -593,6 +621,18 @@ var begin
     k: unsigned[6]
 end
 
+func swap(a, b: unsigned) begin
+    var begin
+        p, q: unsigned
+    end
+
+    q = $a
+    $a = $b
+    $b = q
+
+    return q
+end
+
 
 entry begin
 
@@ -605,6 +645,13 @@ entry begin
         x = x + x
         t = t + 1
     end
+
+
+    x = 10
+    y = 20
+    t = &x
+    i = &y
+    i = swap(t, i)
 
 end`)
 
