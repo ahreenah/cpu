@@ -664,10 +664,48 @@ func quicksort(arr, length:unsigned) begin
 
     var begin
         # left and right elements numbers
-        lnum, rnum: unsigned
+        ind1, ind2, op, tmp, tmp2: unsigned
 
         compareTo:unsigned
     end
+
+    ind1 = arr
+    ind2 = arr + length - 1
+    op = $ind1
+
+    while ind1 < ind2 begin
+        
+        tmp = $ind1
+        while tmp<op begin
+            ind1 = ind1 + 1
+            tmp = $ind1
+        end
+
+        
+        tmp = $ind2
+        while tmp>op begin
+            ind2 = ind2 - 1
+            tmp = $ind2
+        end
+
+        $ind2 = $ind1
+        $ind1 = tmp
+
+
+    end
+    
+    if ind1 > arr begin
+        tmp = ind1 - 1 - arr
+        tmp = quicksort(arr, tmp)
+    end
+
+    if ind2 < arr + length begin
+        tmp = arr + ind1 + 1
+        tmp2 = arr + length - tmp
+        tmp = quicksort(tmp, tmp2)     
+    end
+
+    return tmp
 
 end
 
@@ -677,26 +715,26 @@ entry begin
     t = 0
 
         i = &k + 0
-        $i = 5
+        $i = 7
         
         i = &k + 1
         $i = 2
         
         i = &k + 2
-        $i = 10
+        $i = 4
 
         i = &k + 3
-        $i = 7
+        $i = 9
 
         i = &k + 4
-        $i = 8
+        $i = 3
 
         i = &k + 5
-        $i = 6
+        $i = 1
     
     i = &k
-    t = 5
-    i = bubblesort(i,t)
+    t = 6
+    i = quicksort(i,t)
 
 end`)
 
