@@ -1,5 +1,5 @@
 const TOKEN_TYPES =  {
-    SIGN : ['+','-','>','<','==','!=',':',',','=',],
+    SIGN : ['+','-','*','/','>','<','==','!=',':',',','=',],
     KEYWORD : ['if','while','else','func','var', 'return'],
     BRACKET:  ['[',']','{','}','(',')','begin','end',],
     SEPARATOR:[',',';',],
@@ -163,9 +163,17 @@ let ftp = new FullTreeParser(`
     func (main)() begin
         if(1>2) begin
             x = 10 * (2+2);
+            if (x > 50) begin
+                x = 0
+            end
         end
         x = 0 * (2+2)
         x = 1
+        fomeFunc(x,y)
+        someFunc(1,x)
+        someFunc(1,6)
+        someFunc(2,someFunc(2,5))
+        someFunc(2,2*(3+x))
     end
 `)
 
