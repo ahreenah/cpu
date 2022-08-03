@@ -99,25 +99,73 @@ class FullTreeParser{
                 delete k.lastLevelType
             }
         }
+        res = res.filter((i,num)=>num>0)
         console.log(JSON.stringify(res,null,2))
     }
     levelize(){
-        function levelizeOnce(){
-
+        function levelizeOnce(arr){
+            let maxLevel = -1
+            for(let k of arr)
+                if(k.level>maxLevel)
+                    maxLevel=k.level
+            let res= []
+            let part = []
+            for(let i of arr)
+                if(i.level==maxLevel)
+                    part.push(i)
+                else{
+                    if(part.length){
+                        res[res.length-1].children=part
+                        part=[]
+                    }{
+                        res.push(i)
+                    }
+                }
+            if(part.length){
+                res[res.length-1].children=part
+            }
+            return res
         }
+        let t = [...this.lastLevelTokens]
+        function isSameLevel(arr){
+            for(let k  of arr){
+                if(k.level!=arr[0].level)
+                    return false
+            }
+            return true
+        }
+        while(!isSameLevel(t) && t.length!=1){
+            t = levelizeOnce(t)
+            console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+            console.log(JSON.stringify(t))
+            console.log('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+        }
+        return t
     }
 }
 
+
+function printConsoleTree(v,level=0){
+    const PAD = 3
+    const PAD_SYMBOL = ' '
+    const PAD_SYMBOL_LAST = '-'
+    let start=''
+    for(let i =0; i<level-1; i++)
+        start+='|'+(PAD_SYMBOL.repeat(PAD))
+    if(level)
+    start+='|'+(PAD_SYMBOL_LAST.repeat(PAD))
+    console.log(start+v.text)
+    for(let i of v.children??[]){
+        printConsoleTree(i, level+1)
+    }
+}
 let ftp = new FullTreeParser(`
-    func main() begin
-        var begin
-            x: unsigned
-        end
-        x = 0;
-        if (x>10) begin
+    func (main)() begin
+        if(1>2) begin
             x = 10 * (2+2);
         end
-        x = 0
+        x = 0 * (2+2)
+        x = 1
     end
 `)
 
@@ -127,5 +175,7 @@ ftp.tokenTypes()
 console.log(ftp.typedTokens)
 ftp.computeLevels()
 ftp.lastLevelOnly()
-console.log(ftp.lastLevelTokens)
-ftp.levelGroups()
+// console.log(ftp.lastLevelTokens)
+// console.log(JSON.stringify(ftp.levelize(),null,2))
+printConsoleTree(ftp.levelize()[0])
+// ftp.levelGroups()
