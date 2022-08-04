@@ -142,8 +142,33 @@ class FullTreeParser{
         }
         return t
     }
+
 }
 
+function groupBy(arr, field){
+    let name = arr.text
+    arr = arr.children
+    console.log('gby arr:',arr)
+    let res = []
+    let group = []
+    let lastGroup = null
+    for (let i of arr){
+        if(i[field]!=lastGroup){
+            if(group.length){
+                res.push({type:group[0][field],lastLevelType:group[0][field],children:group,text:group[0][field]})
+                group=[]
+            }
+            group=[i]
+        }else{
+            group.push(i)
+        }
+        lastGroup = i[field]
+        console.log(lastGroup)
+    }
+    if(group.length)res.push({type:group[0][field],lastLevelType:group[0][field],children:group,text:group[0][field]})
+    console.log('groupBy res: ',res)
+    return {text:name,children:res}
+}
 
 function printConsoleTree(v,level=0){
     const PAD = 3
@@ -154,17 +179,19 @@ function printConsoleTree(v,level=0){
         start+='|'+(PAD_SYMBOL.repeat(PAD))
     if(level)
     start+='|'+(PAD_SYMBOL_LAST.repeat(PAD))
-    console.log(start+v.text)
+    console.log(start+v.text+'  :  ' + v.lastLevelType)// +JSON.stringify(v))
     for(let i of v.children??[]){
         printConsoleTree(i, level+1)
     }
 }
 let ftp = new FullTreeParser(`
     func (main)() begin
-        if(1>2) begin
+        if(1>2*(x-1)) begin
             x = 10 * (2+2);
-            if (x > 50) begin
-                x = 0
+            y = 3
+            if (x>8) begin
+                y = 90
+                x = y - x
             end
         end
         x = 0 * (2+2)
@@ -185,5 +212,8 @@ ftp.computeLevels()
 ftp.lastLevelOnly()
 // console.log(ftp.lastLevelTokens)
 // console.log(JSON.stringify(ftp.levelize(),null,2))
-printConsoleTree(ftp.levelize()[0])
+let d = ftp.levelize()[0].children[1]
+console.log('d:',)
+printConsoleTree(groupBy(d,'lastLevelType'))
+// console.log(ftp.levelize()[0].children[1])
 // ftp.levelGroups()
