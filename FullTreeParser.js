@@ -171,13 +171,41 @@ function groupBy(arr, field, recursive){
     // if(recursive){
     for(let k = 0 ; k< res[1].children.length; k++){
         console.log(res[1].children[k])
-        if(res[1].children[k].text=='if')
+        if(res[1].children[k].text=='if' || res[1].children[k].text=='while'|| res[1].children[k].text=='func'|| res[1].children[k].text== 'module')
         res[1].children[k]=groupBy(res[1].children[k],field,false)
         console.log(res[1].children[k])
     }
         // while(1){};
     // }
     return {text:name,children:res}
+}
+
+function multiplyNest(d){
+    console.log(d)
+    for(let i=0; i<d.children.length; i++){
+        if(d.children[i]?.children){
+            d.children[i] = multiplyNest(d.children[i])
+        }
+        if(d.children[i]?.text=='*'){
+            console.log(i, d.children[i]);
+            // while(1){}
+            if(!(d.children[i].children)){
+                d.children[i].children=[d.children[i+1]]
+                // d.children[i].children[d.children[i].children.length-1]={text:'right',children:d.children[i].children[d.children[i].children.length-1]}
+                // d.children[i].children.push({text:'MUL_SEP'})
+                // d.children[i].children.push(d.children[i-1])
+                // d.children[i+1] = null
+                // console.log(i)
+                // while(1){}
+            }
+            else{
+                // console.log('DEL:',d.children[i+1])
+                d.children[i+1] = null
+            }
+        }
+    }
+    d.children = d.children.filter(i=>i)
+    return d;
 }
 
 function printConsoleTree(v,level=0){
@@ -190,23 +218,30 @@ function printConsoleTree(v,level=0){
     if(level)
     start+='|'+(PAD_SYMBOL_LAST.repeat(PAD))
     console.log(start+v.text+'  :  ' + v.lastLevelType)// +JSON.stringify(v))
-    for(let i of v.children??[]){
+    for(let i of v?.children??[]){
         printConsoleTree(i, level+1)
     }
 }
 let ftp = new FullTreeParser(`
-    func (main)() begin
-        if(1>2*(x-1)) begin
-            x = 10 * (2+2);
-            y = 3
-            if (x>8) begin
-                y = 90
-                x = y - x
-                if(x>20) begin
-                    y = 0
+    module (main) begin
+        func (find) {y} begin
+            y = a + b * 5
+            return (y)
+        end
+        while (k<x) begin
+            if(1>2*(x-1)) begin
+                x = 10 * (2 + 2 *(3+4) );
+                y = (2+2)*(3+3)
+                if (x>8) begin
+                    y = 90
+                    x = y - x 
+                    if ( x > 60 + 7) begin
+                        y = 0
+                    end
+                    l = find(9)
                 end
             end
-        end
+        end 
         x = 0 * (2+2)
         x = 1
         fomeFunc(x,y)
@@ -214,6 +249,9 @@ let ftp = new FullTreeParser(`
         someFunc(1,6)
         someFunc(2,someFunc(2,5))
         someFunc(2,2*(3+x))
+        t = x + 2 * 6 + 6
+        z = 1*2+3*(4+2*1)
+        k=0
     end
 `)
 
@@ -225,8 +263,12 @@ ftp.computeLevels()
 ftp.lastLevelOnly()
 // console.log(ftp.lastLevelTokens)
 // console.log(JSON.stringify(ftp.levelize(),null,2))
-let d = ftp.levelize()[0].children[1]
+let d = ftp.levelize()[0]
 console.log('d:',)
+multiplyNest(groupBy(d,'lastLevelType',true).children[1])
 printConsoleTree(groupBy(d,'lastLevelType',true))
+let t = multiplyNest(groupBy(d,'lastLevelType',true).children[1])
+console.log(t)
+printConsoleTree(t)
 // console.log(ftp.levelize()[0].children[1])
 // ftp.levelGroups()
