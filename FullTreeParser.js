@@ -145,7 +145,7 @@ class FullTreeParser{
 
 }
 
-function groupBy(arr, field){
+function groupBy(arr, field, recursive){
     let name = arr.text
     arr = arr.children
     console.log('gby arr:',arr)
@@ -163,10 +163,20 @@ function groupBy(arr, field){
             group.push(i)
         }
         lastGroup = i[field]
-        console.log(lastGroup)
+        // console.log(lastGroup)
     }
     if(group.length)res.push({type:group[0][field],lastLevelType:group[0][field],children:group,text:group[0][field]})
     console.log('groupBy res: ',res)
+    
+    // if(recursive){
+    for(let k = 0 ; k< res[1].children.length; k++){
+        console.log(res[1].children[k])
+        if(res[1].children[k].text=='if')
+        res[1].children[k]=groupBy(res[1].children[k],field,false)
+        console.log(res[1].children[k])
+    }
+        // while(1){};
+    // }
     return {text:name,children:res}
 }
 
@@ -192,6 +202,9 @@ let ftp = new FullTreeParser(`
             if (x>8) begin
                 y = 90
                 x = y - x
+                if(x>20) begin
+                    y = 0
+                end
             end
         end
         x = 0 * (2+2)
@@ -214,6 +227,6 @@ ftp.lastLevelOnly()
 // console.log(JSON.stringify(ftp.levelize(),null,2))
 let d = ftp.levelize()[0].children[1]
 console.log('d:',)
-printConsoleTree(groupBy(d,'lastLevelType'))
+printConsoleTree(groupBy(d,'lastLevelType',true))
 // console.log(ftp.levelize()[0].children[1])
 // ftp.levelGroups()
