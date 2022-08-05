@@ -184,9 +184,10 @@ function groupBy(arr, field, recursive){
 let parsed = []
 
 function multiplyNest(d){
+    let arra = d
     console.log(d)
     let size = d.children.length
-    for(let i=0; i<d.children.length; i++){
+    for(let i=0; i<size; i++){
         if(d.children[i]?.children){
             d.children[i] = multiplyNest(d.children[i])
         }
@@ -196,14 +197,32 @@ function multiplyNest(d){
 
             // if(!(d.children[i].children?.length>0)){
                 if(parsed.indexOf(d.children[i])==-1){
-                    d.children[i].children?.push({text:'left', children:[
-                        {text:d.children[i-1].text}
-                    ]})
                     if(d.children[i].children){
                         d.children[i].children?.push({text:'right', children:[
                             ...d.children[i].children.filter(i=>i.text!='left')
                         ]})
-                    }else{
+                        // d.children[i-1]={type:'removed'}
+                        // d.children=d.children.filter(i=>i.type!='removed')
+                        // i--
+                        // arra.children = arra.children.map((k,num)=>{
+                        //     if(num!=i)
+                        //         return k
+                        //     return ({text:'deleted'})
+                        // })
+                        d = arra
+                        d.children[i].children?.push({text:'left', children:[
+                            {...d.children[i-1],text:d.children[i-1].text}
+                        ]})
+                        console.log('deleting',d.children[i-1])
+                        // while(true){}
+                        d.children[i-1]={text:'removed'}
+
+                        d.children=d.children.filter(k=>k.text!='removed')
+                        i--
+                        size = d.children.length
+                        console.log(d.children[i])
+                        // while(1){}
+                    } else {
                         d.children[i].children=[{text:'left', children:[
                             // ...d?.children?.[i+1]
                             d.children[i-1]
@@ -213,6 +232,10 @@ function multiplyNest(d){
                             // ...d?.children?.[i+1]
                             d.children[i+1]
                         ]})
+                        d.children[i+1]={type:'removed'}
+                        d.children=d.children.filter(i=>i.type!='removed')
+                        i--
+                        size = d.children.length
                         // d.children[i+1]=null
                         // d.children[i-1]=null
                         // d.children[i+1]= null
@@ -242,16 +265,57 @@ function multiplyNest(d){
             // }
             // d.children.pop()
             // size--
-            if(i<d.children.length-1){
+            // if(i<d.children.length-1){
                 
-                d.children[i+1]=d.children[i]
-                i++
-            }
+            //     d.children[i+1]=d.children[i+2]
+            //     i++
+            //     size--
+            // }
         }
     }
     d.children = d.children.filter(i=>i)
+    // for (let i = 0 ; i<d.children.length-1; i++)    
+    //     if(d.children[i+1].text=='*')
+    //         d.children[i].text='deleted'
+    // d.children = d.children.filter(i=>i.text!='deleted')
     return d;
 }
+
+function mathTreeTestedInConsole(arr){
+    for(let signs of[['*','/'],['+','-']]){
+        let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
+        let hasChildren = arr[center]?.children?.length
+        if(center!=-1){
+            if(!hasChildren)
+                arr[center]={
+                    text:arr[center].text,
+                    computed:true,
+                    children:[
+                        {text:'left',children:[arr[center-1]]},
+                        {text:'right',children:[arr[center+1]]},
+                    ]
+                }
+            else
+                arr[center]={
+                    text:arr[center].text,
+                    computed:true,
+                    children:[
+                        {text:'left',children:[arr[center-1]]},
+                        {text:'right',children:mathTreeTestedInConsole(arr[center].children)},
+                    ]
+                }
+            if(!hasChildren)
+                arr.splice(center+1,1)
+            arr.splice(center-1,1)
+            console.log('i',arr)
+            if(arr.length>1)
+                arr = mathTreeTestedInConsole(arr)
+        }
+    }
+    return arr
+    
+}
+
 
 function printConsoleTree(v,level=0){
     const PAD = 3
@@ -267,9 +331,26 @@ function printConsoleTree(v,level=0){
         printConsoleTree(i, level+1)
     }
 }
+
+printConsoleTree(mathTreeTestedInConsole([
+    {text:'2',},
+    {text:'+',},
+    {text:'2',},
+    {text:'*',},
+    {text:'4',},
+    {text:'*',children:[
+        {text:'2',},
+        {text:'+',},
+        {text:'2',}
+    ]},
+])[0])
+
+
+while(1){}
+
 let ftp = new FullTreeParser(`
     module (main) begin
-        z = 1*2+3*(4+2*0)
+        z = 1*2+302*(4+2*0)
         k=0
 
         y = 0 + 7 *(2+1)
@@ -277,6 +358,8 @@ let ftp = new FullTreeParser(`
         t = 2 * (8 + 9 * (6 - 4 ))
 
         k = 1+2*4* 9*6 +0
+
+        7*9
     end
 `)
 
@@ -292,7 +375,8 @@ let d = ftp.levelize()[0]
 console.log('d:',)
 multiplyNest(groupBy(d,'lastLevelType',true).children[1])
 printConsoleTree(groupBy(d,'lastLevelType',true))
-let t = multiplyNest(groupBy(d,'lastLevelType',true).children[1])
+let ko = groupBy(d,'lastLevelType',true).children[1];
+let t = multiplyNest(ko)
 console.log(t)
 printConsoleTree(t)
 // console.log(ftp.levelize()[0].children[1])
