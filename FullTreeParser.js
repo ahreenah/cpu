@@ -282,7 +282,7 @@ function multiplyNest(d){
 }
 
 function mathTreeTestedInConsole(arr){
-    for(let signs of[['*','/'],['+','-']]){
+    for(let signs of[['*','/'],['+','-'],['<','>'],['=']]){
         let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
         let hasChildren = arr[center]?.children?.length
         if(center!=-1){
@@ -333,6 +333,8 @@ function printConsoleTree(v,level=0){
 }
 
 printConsoleTree(mathTreeTestedInConsole([
+    {'text':'x'},
+    {text:'='},
     {text:'2',},
     {text:'+',},
     {text:'2',},
@@ -356,9 +358,9 @@ let ftp = new FullTreeParser(`
         y = 0 + 7 *(2+1)
         z = 2 * (2 + 2) + 0
         t = 2 * (8 + 9 * (6 - 4 ))
-
-        k = 1+2*4* 9*6 +0
-
+        if (x>0) begin
+            k = 1+2*4* 9*6 +0
+        end
         7*9
     end
 `)
@@ -372,12 +374,12 @@ ftp.lastLevelOnly()
 // console.log(ftp.lastLevelTokens)
 // console.log(JSON.stringify(ftp.levelize(),null,2))
 let d = ftp.levelize()[0]
-console.log('d:',)
-multiplyNest(groupBy(d,'lastLevelType',true).children[1])
+console.log('d:',d)
+// multiplyNest(groupBy(d,'lastLevelType',true).children[1])
 printConsoleTree(groupBy(d,'lastLevelType',true))
 let ko = groupBy(d,'lastLevelType',true).children[1];
-let t = multiplyNest(ko)
-console.log(t)
-printConsoleTree(t)
+// let t = multiplyNest(ko)
+// console.log(t)
+printConsoleTree(ko)
 // console.log(ftp.levelize()[0].children[1])
 // ftp.levelGroups()
