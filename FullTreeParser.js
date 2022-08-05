@@ -307,11 +307,13 @@ function mathTreeTestedInConsole(arr){
             if(!hasChildren)
                 arr.splice(center+1,1)
             arr.splice(center-1,1)
-            console.log('i',arr)
+            // console.log('i',arr)
             if(arr.length>1)
                 arr = mathTreeTestedInConsole(arr)
         }
     }
+    // if(arr[0]?.children[0])
+    //     arr[0].children[0] = mathTreeTestedInConsole(arr[0]?.children[0])
     return arr
     
 }
@@ -332,7 +334,7 @@ function printConsoleTree(v,level=0){
     }
 }
 
-printConsoleTree({text:'tree',children:mathTreeTestedInConsole([
+let testAfterBraces=[
     {text:'if',children:[
         {text:'(',children:[
 
@@ -343,6 +345,7 @@ printConsoleTree({text:'tree',children:mathTreeTestedInConsole([
         {text:'begin',children:[
             {text:'t'},
             {text:'='},
+            {text:'x'},
             {text:'x',},
             {text:'='},
             {text:'y'},
@@ -367,8 +370,79 @@ printConsoleTree({text:'tree',children:mathTreeTestedInConsole([
     {text:'='},
     {text:'2',},
     
-])})
+]
 
+
+function hasNotParsedMath(tree){
+    for(let k of tree){
+        if(['+','-','*','/','>','<','='].indexOf(k.text)){
+            if(!(k.children?.length))
+                return true
+        }
+    }
+    return false
+}
+
+function findNorParsedMath(tree){
+    for(let i=0; i<tree.length; i++){
+        for(let j = 0; j<tree[i].children.length; j++){
+            if(tree[i]?.children[j]?.children){
+                // console.log(hasNotParsedMath(tree[i].children[j].children))
+                if(hasNotParsedMath(tree[i].children[j].children))
+                    return [i,j]
+            }
+        }
+    }
+    return []
+}
+
+function getByPath(path,data){
+    let t = data
+    for(let i of path){
+        t = t[i].children
+    }
+    return t
+}
+
+// has some not tree'ed parts
+printConsoleTree({text:'tree',children:mathTreeTestedInConsole(testAfterBraces)})
+console.log(findNorParsedMath(testAfterBraces)) // 0 0 
+console.log(hasNotParsedMath(testAfterBraces[0].children[0].children))
+
+
+let oneMore = true;
+
+let addr;
+
+let dt;
+
+let was = null
+for(let loops = 0; ; loops++){
+    addr = findNorParsedMath(testAfterBraces)
+    dt = {v:getByPath(addr,testAfterBraces)}
+    dt.v = mathTreeTestedInConsole(dt.v)
+    console.log('next should be '+findNorParsedMath(testAfterBraces))
+    if(JSON.stringify(was)==JSON.stringify(findNorParsedMath(testAfterBraces))) 
+        break
+    was = findNorParsedMath(testAfterBraces)
+}
+
+
+// addr = findNorParsedMath(testAfterBraces)
+// dt = {v:getByPath(addr,testAfterBraces)}
+// dt.v = mathTreeTestedInConsole(dt.v)
+
+
+// console.log(findNorParsedMath(testAfterBraces)) // 0 1
+// testAfterBraces[0].children[1].children = mathTreeTestedInConsole(testAfterBraces[0].children[1].children)
+// console.log(findNorParsedMath(testAfterBraces)) // 1 0
+// testAfterBraces[1].children[0].children = mathTreeTestedInConsole(testAfterBraces[1].children[0].children)
+// console.log(findNorParsedMath(testAfterBraces)) // 1 0
+printConsoleTree({text:'tree',children:mathTreeTestedInConsole(testAfterBraces)})
+while(1){}
+console.log('-------------')
+// converts one part ()with tree address) to tre'ed part
+printConsoleTree({text:'tree',children:mathTreeTestedInConsole(testAfterBraces[0].children[0].children)})
 
 while(1){}
 
