@@ -332,8 +332,26 @@ function printConsoleTree(v,level=0){
     }
 }
 
-printConsoleTree(mathTreeTestedInConsole([
-    {'text':'x'},
+printConsoleTree({text:'tree',children:mathTreeTestedInConsole([
+    {text:'if',children:[
+        {text:'(',children:[
+
+            {text:'x'},
+            {text:'>'},
+            {text:'y',},
+        ]},
+        {text:'begin',children:[
+            {text:'t'},
+            {text:'='},
+            {text:'x',},
+            {text:'='},
+            {text:'y'},
+            {text:'y'},
+            {text:'='},
+            {text:'t',},
+        ]}
+    ]},
+    {text:'x'},
     {text:'='},
     {text:'2',},
     {text:'+',},
@@ -345,7 +363,11 @@ printConsoleTree(mathTreeTestedInConsole([
         {text:'+',},
         {text:'2',}
     ]},
-])[0])
+    {text:'Y'},
+    {text:'='},
+    {text:'2',},
+    
+])})
 
 
 while(1){}
@@ -381,5 +403,6 @@ let ko = groupBy(d,'lastLevelType',true).children[1];
 // let t = multiplyNest(ko)
 // console.log(t)
 printConsoleTree(ko)
+console.log(ko)
 // console.log(ftp.levelize()[0].children[1])
 // ftp.levelGroups()
