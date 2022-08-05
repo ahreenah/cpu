@@ -373,9 +373,10 @@ function findNorParsedMath(tree,){
         for(let j = 0; j<tree[i].children.length; j++){
             console.log('i j:',i,j,tree[i].children[j].children.length )
             for(let k=0; k<tree[i].children[j].children.length; k++){
-                console.log('i, j, k:',i,j,k)
+                console.log('i, j, k:',i,j,k,':',tree[i].children[j].children.length)
                 for(let t=0; t<tree[i].children[j]?.children[k].length; k++){
-                    if(tree[i]?.children[j]?.children[k]?.children[t]?.length){
+                    console.log('i, j, k, t')
+                    if(tree[i]?.children[j]?.children[k]?.children[t]?.children.length){
                         console.log(i,j,k,t)
                         if(hasNotParsedMath(tree[i].children[j].children[k].children[t].children))
                             return [i,j,k,t]
