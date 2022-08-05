@@ -187,10 +187,11 @@ function multiplyNest(d){
             d.children[i] = multiplyNest(d.children[i])
         }
         if(d.children[i]?.text=='*'){
-            console.log(i, d.children[i]);
+            console.log('multiply, children:',i, d.children[i].children, d.children[i].children?.length);
             // while(1){}
-            if(!(d.children[i].children)){
-                d.children[i].children=[d.children[i+1]]
+
+            if(!(d.children[i].children?.length>0)){
+                d.children[i].children=[{text:'right',children:[d.children[i+1]]}]
                 // d.children[i].children[d.children[i].children.length-1]={text:'right',children:d.children[i].children[d.children[i].children.length-1]}
                 // d.children[i].children.push({text:'MUL_SEP'})
                 // d.children[i].children.push(d.children[i-1])
@@ -199,9 +200,11 @@ function multiplyNest(d){
                 // while(1){}
             }
             else{
-                // console.log('DEL:',d.children[i+1])
-                d.children[i+1] = null
+                // d.children[i].children=[{text:'right',children:d.children[i].children}]
+                console.log('DEL:',d.children[i+1])
+                // d.children[i+1] = null
             }
+            d.children[i+1] = null
         }
     }
     d.children = d.children.filter(i=>i)
@@ -224,34 +227,10 @@ function printConsoleTree(v,level=0){
 }
 let ftp = new FullTreeParser(`
     module (main) begin
-        func (find) {y} begin
-            y = a + b * 5
-            return (y)
-        end
-        while (k<x) begin
-            if(1>2*(x-1)) begin
-                x = 10 * (2 + 2 *(3+4) );
-                y = (2+2)*(3+3)
-                if (x>8) begin
-                    y = 90
-                    x = y - x 
-                    if ( x > 60 + 7) begin
-                        y = 0
-                    end
-                    l = find(9)
-                end
-            end
-        end 
-        x = 0 * (2+2)
-        x = 1
-        fomeFunc(x,y)
-        someFunc(1,x)
-        someFunc(1,6)
-        someFunc(2,someFunc(2,5))
-        someFunc(2,2*(3+x))
-        t = x + 2 * 6 + 6
-        z = 1*2+3*(4+2*1)
+        z = 1*2+3*(4+2*0)
         k=0
+
+        y = 0 + (2+2)*(2+1)
     end
 `)
 
