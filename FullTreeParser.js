@@ -180,31 +180,73 @@ function groupBy(arr, field, recursive){
     return {text:name,children:res}
 }
 
+
+let parsed = []
+
 function multiplyNest(d){
     console.log(d)
+    let size = d.children.length
     for(let i=0; i<d.children.length; i++){
         if(d.children[i]?.children){
             d.children[i] = multiplyNest(d.children[i])
         }
         if(d.children[i]?.text=='*'){
             console.log('multiply, children:',i, d.children[i].children, d.children[i].children?.length);
-            // while(1){}
+    //         // while(1){}
 
-            if(!(d.children[i].children?.length>0)){
-                d.children[i].children=[{text:'right',children:[d.children[i+1]]}]
+            // if(!(d.children[i].children?.length>0)){
+                if(parsed.indexOf(d.children[i])==-1){
+                    d.children[i].children?.push({text:'left', children:[
+                        {text:d.children[i-1].text}
+                    ]})
+                    if(d.children[i].children){
+                        d.children[i].children?.push({text:'right', children:[
+                            ...d.children[i].children.filter(i=>i.text!='left')
+                        ]})
+                    }else{
+                        d.children[i].children=[{text:'left', children:[
+                            // ...d?.children?.[i+1]
+                            d.children[i-1]
+                        ]}]
+                        d.children[i-1]={type:'removed'}
+                        d.children[i].children.push({text:'right', children:[
+                            // ...d?.children?.[i+1]
+                            d.children[i+1]
+                        ]})
+                        // d.children[i+1]=null
+                        // d.children[i-1]=null
+                        // d.children[i+1]= null
+                    }
+                }
+                parsed.push(d.children[i])
+                d.children[i].children = d.children[i]?.children?.filter(i=>((i.text==='left') || (i.text==='right')))
+                // d.children[i].children?.push({text:'right', children:d.children[i].children.filter(i=>i.text!='left')})
+                //     // {text:'right',children:[d.children[i].children]},
+                //     {text:'left', children:[d.children[i-1]]}
+                // ]
                 // d.children[i].children[d.children[i].children.length-1]={text:'right',children:d.children[i].children[d.children[i].children.length-1]}
                 // d.children[i].children.push({text:'MUL_SEP'})
                 // d.children[i].children.push(d.children[i-1])
-                // d.children[i+1] = null
+                // d.children[i+1] = {text:'aftermul'}
                 // console.log(i)
                 // while(1){}
+            // }
+    //         else{
+    //             // d.children[i].children=[{text:'right',children:d.children[i].children}]
+    //             console.log('DEL:',d.children[i+1])
+    //             // d.children[i+1] = null
+    //         }
+            // d.children[i+1] = null
+            // for(let k = i+1; k<d.children.length-1;k++){
+            //     d.children.k = d.children[k+1]
+            // }
+            // d.children.pop()
+            // size--
+            if(i<d.children.length-1){
+                
+                d.children[i+1]=d.children[i]
+                i++
             }
-            else{
-                // d.children[i].children=[{text:'right',children:d.children[i].children}]
-                console.log('DEL:',d.children[i+1])
-                // d.children[i+1] = null
-            }
-            d.children[i+1] = null
         }
     }
     d.children = d.children.filter(i=>i)
@@ -230,7 +272,11 @@ let ftp = new FullTreeParser(`
         z = 1*2+3*(4+2*0)
         k=0
 
-        y = 0 + (2+2)*(2+1)
+        y = 0 + 7 *(2+1)
+        z = 2 * (2 + 2) + 0
+        t = 2 * (8 + 9 * (6 - 4 ))
+
+        k = 1+2*4* 9*6 +0
     end
 `)
 
