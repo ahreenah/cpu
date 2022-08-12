@@ -61,12 +61,91 @@ function parseVar(tree){
     return varObj
 }
 
+function mathToAsm(tree, context){
+    if(!isNaN(parseInt(tree.text))){
+        return [`pushc 0 ${tree.text}`]
+    }
+    if(tree.text=='+'){
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        return [
+            ...leftAsm, 
+            ...rightAsm,
+            'popmi2 0',
+            'popmi1 0',
+            'mosumtomi1',
+            'pushmi1 0'
+        ]
+    }
+    else if(tree.text=='-'){
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        return [
+            ...leftAsm, 
+            ...rightAsm,
+            'popmi2 0',
+            'popmi1 0',
+            'mosubtomi1',
+            'pushmi1 0'
+        ]
+    }
+    else if(tree.text=='*'){
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        return [
+            ...leftAsm, 
+            ...rightAsm,
+            'popmi2 0',
+            'popmi1 0',
+            'momultomi1',
+            'pushmi1 0'
+        ]
+    }
+    else{
+        if(context[tree.text])
+        return [
+            `memspnegoffsettomi1 ${context[tree.text].negOffset}`,
+            `pushmi1 0`
+        ]
+        else{
+            throw new Error(`${tree.text} is not defined`)
+        }
+    }
+
+    
+}
+
+function parseAssign(tree, context){
+    // printConsoleTree(tree)
+    let rightItem = getChildByText(tree,'right');
+    let leftItem = getChildByText(tree,'left');
+    printConsoleTree(leftItem)
+    printConsoleTree(rightItem)
+    console.log(mathToAsm(rightItem.children[0], context))
+}
+
 function compile(code){
 
+    console.log('a')
     let tree = codeToTree(code)
+    console.log('b')
     let globalVar = getChildByText(tree,'var')
-    console.log('s:',JSON.stringify(parseVar(globalVar)))
-    printConsoleTree(globalVar)
+    let parsedVar = parseVar(globalVar);
+    console.log('s:',JSON.stringify(parsedVar))
+    let globalVarObj = {}
+    console.log('gv',globalVarObj)
+    for (let i of parsedVar.vars){
+        globalVarObj[i.name] = i
+    }
+    console.log('gvo',globalVarObj)
+    globalVar = globalVarObj
+    for(let i of tree.children){
+        console.log(i.text)
+        if(i.text=='='){
+            parseAssign(i, globalVar)
+        }
+    }
+    // printConsoleTree(globalVar)
     // printConsoleTree(tree)
     
     
@@ -76,19 +155,16 @@ compile(`
 
 module (main) begin
 
-    x = 0
     var begin
         i, j, t: unsigned
         arr: unsigned[5]
-        k,p: unsigned[3]
     end
 
+    x = 0
+    x = 0
     i = 2
-    j = 5
-    if (i>j) begin 
-        t = i i = j j = t
-    end
 
+    z = 2 * (3 + 4) + arr
 end
 
 `)

@@ -396,25 +396,11 @@ printConsoleTree(codeToTree(`
             arr: unsigned[5]
         end
 
-        i = 0
-        while (i < 5) begin 
-            j = i
-            while (j < 5) begin
-                if( $(&arr+i) > $(&arr+j) ) begin
-                    t = $(&arr+i)
-                    $(&arr+i) = $(&arr+j)
-                    $(&arr+j) = t
-                end 
-                j=j+1
-            end
-            i=i+1
-        end
-        $ x = x + &y 
+        x = 0
+        x = 0
+        i = 2
 
-        if (x>0) begin
-            x = 0
-        end
-
+        z = 2 + (2 + 2)
     end
 
 `))
