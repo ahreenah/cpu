@@ -1,3 +1,10 @@
+/*
+
+Full tree parser is used to generate syntax tree from provided text code.
+It computed operation order and does the decomposition to simple actions
+
+*/
+
 
 const TOKEN_TYPES =  {
     SIGN : ['+','-','*','/','>','<','==','!=',':',',','=',],
@@ -275,7 +282,7 @@ function mathTreeTestedInConsole(arr){
 }
 
 
-function printConsoleTree(v,level=0){
+export function printConsoleTree(v,level=0){
     const PAD = 3
     const PAD_SYMBOL = ' '
     const PAD_SYMBOL_LAST = '-'
@@ -350,7 +357,7 @@ function setByPath(obj,path,data){
 
 
 
-function codeToTree(code){
+export function codeToTree(code){
 
     let ftp = new FullTreeParser(code)
 
@@ -381,27 +388,33 @@ function codeToTree(code){
     return ko
 }//($(&arr+i))>$(&arr+j)
 printConsoleTree(codeToTree(`
-        module (main) begin
+
+    module (main) begin
 
         var begin
             i, j, t: unsigned
             arr: unsigned[5]
         end
 
-            i = 0
-            while (i < 5) begin 
-                j = i
-                while (j < 5) begin
-                    if( $(&arr+i) > $(&arr+j) ) begin
-                        t = $(&arr+i)
-                        $(&arr+i) = $(&arr+j)
-                        $(&arr+j) = t
-                    end
-                    j=j+1
-                end
-                i=i+1
+        i = 0
+        while (i < 5) begin 
+            j = i
+            while (j < 5) begin
+                if( $(&arr+i) > $(&arr+j) ) begin
+                    t = $(&arr+i)
+                    $(&arr+i) = $(&arr+j)
+                    $(&arr+j) = t
+                end 
+                j=j+1
             end
-            $ x = x + &y 
-
+            i=i+1
         end
-    `))
+        $ x = x + &y 
+
+        if (x>0) begin
+            x = 0
+        end
+
+    end
+
+`))
