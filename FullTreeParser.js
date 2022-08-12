@@ -4,6 +4,7 @@ const TOKEN_TYPES =  {
     KEYWORD : ['if','while','else','func','var', 'return'],
     BRACKET:  ['[',']','{','}','(',')','begin','end',],
     SEPARATOR:[',',';',],
+    UNARY_OPERATOR:['&','$','!']
 }
 
 class Node{
@@ -26,7 +27,7 @@ class FullTreeParser{
         this.fullStr = lines.join(' ')
     }
     tokenize(){       
-        for(let i of [...TOKEN_TYPES.SIGN, ...TOKEN_TYPES.BRACKET,...TOKEN_TYPES.SEPARATOR])
+        for(let i of [...TOKEN_TYPES.SIGN, ...TOKEN_TYPES.BRACKET,...TOKEN_TYPES.SEPARATOR, ...TOKEN_TYPES.UNARY_OPERATOR])
             this.fullStr = this.fullStr.replaceAll(i,' '+i+' ')
         this.fullStr = this.fullStr.replaceAll(/ +/g,' ')
         this.tokens=this.fullStr.split(' ').filter(i=>i)
@@ -214,6 +215,32 @@ function multiplyNest(d){
 }
 
 function mathTreeTestedInConsole(arr){
+    for(let signs of[['&'],['$']]){
+        let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
+        let hasChildren = arr[center]?.children?.length
+        if(center!=-1){
+            if(!hasChildren)
+                arr[center]={
+                    text:arr[center].text,
+                    computed:true,
+                    children:[
+                        {text:'right',children:[arr[center+1]]},
+                    ]
+                }
+            else
+                arr[center]={
+                    text:arr[center].text,
+                    computed:true,
+                    children:[
+                        {text:'right',children:mathTreeTestedInConsole(arr[center].children)},
+                    ]
+                }
+            if(!hasChildren)
+                arr.splice(center+1,1)
+            if(arr.length>1)
+                arr = mathTreeTestedInConsole(arr)
+        }
+    }
     for(let signs of[['*','/'],['+','-'],['<','>'],['='],[',',';'],[':']]){
         let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
         let hasChildren = arr[center]?.children?.length
@@ -352,34 +379,29 @@ function codeToTree(code){
         }
     }
     return ko
-}
+}//($(&arr+i))>$(&arr+j)
 printConsoleTree(codeToTree(`
         module (main) begin
 
-            var begin
-                x, y :  unsigned
-                arr : unsigned[3]
-            end
+        var begin
+            i, j, t: unsigned
+            arr: unsigned[5]
+        end
 
-            func (test) [x, y, t] begin
-                var begin
-                    t, po: unsigned
+            i = 0
+            while (i < 5) begin 
+                j = i
+                while (j < 5) begin
+                    if( $(&arr+i) > $(&arr+j) ) begin
+                        t = $(&arr+i)
+                        $(&arr+i) = $(&arr+j)
+                        $(&arr+j) = t
+                    end
+                    j=j+1
                 end
-                var(q:quick)
-                k = 0
-                return (k)
+                i=i+1
             end
-
-            x = 0
-            y = x  + 2 
-            
-            if ( x > y ) begin
-                x = 0
-                
-                if ( x > 0 ) begin
-                    x = 0
-                end
-            end
+            $ x = x + &y 
 
         end
     `))
