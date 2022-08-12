@@ -1,3 +1,4 @@
+
 const TOKEN_TYPES =  {
     SIGN : ['+','-','*','/','>','<','==','!=',':',',','=',],
     KEYWORD : ['if','while','else','func','var', 'return'],
@@ -282,6 +283,7 @@ function multiplyNest(d){
 }
 
 function mathTreeTestedInConsole(arr){
+    // console.log(arr)
     for(let signs of[['*','/'],['+','-'],['<','>'],['=']]){
         let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
         let hasChildren = arr[center]?.children?.length
@@ -329,6 +331,7 @@ function printConsoleTree(v,level=0){
     if(level)
     start+='|'+(PAD_SYMBOL_LAST.repeat(PAD))
     console.log(start+v.text+'  :  ' + v.lastLevelType)// +JSON.stringify(v))
+    // console.log(v)
     for(let i of v?.children??[]){
         printConsoleTree(i, level+1)
     }
@@ -337,70 +340,120 @@ function printConsoleTree(v,level=0){
 
 
 function hasNotParsedMath(tree){
+    if(!tree) return false
+    // console.log(tree)
+    if(tree.length==1) return false
     for(let k of tree){
+        // console.log(k.text)
         if(['+','-','*','/','>','<','='].indexOf(k.text)){
             if(!(k.children?.length))
+                return true
+            if((k?.children?.length==1) && (k.text=='*'))
                 return true
         }
     }
     return false
 }
 
-function findNorParsedMath(tree,){
-    for(let i=0; i<tree.length; i++){
-        console.log('i:',i)
-        if(hasNotParsedMath(tree[i].children)){
-            console.log('found ',i)
-            return [i]
-        }
 
-        
-        for(let j = 0; j<tree[i].children.length; j++){
-            console.log('i j:',i,j,tree[i].children[j].children.length )
-            for(let k=0; k<tree[i].children[j].children.length; k++){
-                console.log('i, j, k:',i,j,k)
-                if(tree[i]?.children[j]?.children[k]?.children){
-                    if(tree[i]?.children[j]?.children[k]?.children){
-                        console.log(i,j,k)
-                        if(hasNotParsedMath(tree[i].children[j].children[k].children))
-                            return [i,j,k]
-                    }
-                }
-            }
-        }
-
-        console.log('not found', i)
-        for(let j = 0; j<tree[i].children.length; j++){
-            console.log('i j:',i,j,tree[i].children[j].children.length )
-            for(let k=0; k<tree[i].children[j].children.length; k++){
-                console.log('i, j, k:',i,j,k,':',tree[i].children[j].children.length)
-                for(let t=0; t<tree[i].children[j]?.children[k].length; k++){
-                    console.log('i, j, k, t')
-                    if(tree[i]?.children[j]?.children[k]?.children[t]?.children.length){
-                        console.log(i,j,k,t)
-                        if(hasNotParsedMath(tree[i].children[j].children[k].children[t].children))
-                            return [i,j,k,t]
-                    }
-                }
-            }
-        }
-        for(let j = 0; j<tree[i].children.length; j++){
-            if(tree[i]?.children[j]?.children){
-                if(hasNotParsedMath(tree[i].children[j].children))
-                    return [i,j]
-            }
-        }
-        
+function hasNotParsedMathDeep(tree){
+    console.log('tree:',tree)
+    if(!tree){
+        console.log('not a tree')
+        return false
     }
-    return []
+    if(hasNotParsedMath(tree))
+        return true
+    for(let k of tree)
+        if(hasNotParsedMathDeep(k.children))
+            return true
+    return false
+}
+
+function findNotParsedMath(tree,){
+    // console.log('tree:',tree)
+    // console.log('has',hasNotParsedMath(tree.children))
+
+    if(hasNotParsedMath(tree.children))
+        return []
+
+    for(let i=0; i<tree.children.length; i++){
+        if(hasNotParsedMathDeep(tree.children[i]?.children)){
+            console.log(`child ${i} has unparsed math child`)
+            return [i,...findNotParsedMath(tree.children[i])]
+        }
+        console.log(`child ${i} has not unparsed math child`)
+        console.log()
+        // if(['+','-','*','/','>','<','='].indexOf(tree.children[i].text)){
+        //     if(!(tree.children[i].children?.length))
+        //         return [i]
+        //     if(tree.children[i]?.children?.length==1)
+        //         return [i]
+        // } 
+    }
+            // console.log('i:',i)
+            // if(hasNotParsedMath(tree[i].children)){
+            //     console.log('found ',i)
+            //     return [i]
+            // }
+
+        
+        // for(let j = 0; j<tree[i].children.length; j++){
+    //         console.log('i j:',i,j,tree[i].children[j].children.length )
+    //         for(let k=0; k<tree[i].children[j].children.length; k++){
+    //             console.log('i, j, k:',i,j,k)
+    //             if(tree[i]?.children[j]?.children[k]?.children){
+    //                 if(tree[i]?.children[j]?.children[k]?.children){
+    //                     console.log(i,j,k)
+    //                     if(hasNotParsedMath(tree[i].children[j].children[k].children))
+    //                         return [i,j,k]
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     console.log('not found', i)
+    //     for(let j = 0; j<tree[i].children.length; j++){
+    //         console.log('i j:',i,j,tree[i].children[j].children.length )
+    //         for(let k=0; k<tree[i].children[j].children.length; k++){
+    //             console.log('i, j, k:',i,j,k,':',tree[i].children[j].children.length)
+    //             for(let t=0; t<tree[i].children[j]?.children[k].length; k++){
+    //                 console.log('i, j, k, t')
+    //                 if(tree[i]?.children[j]?.children[k]?.children[t]?.children.length){
+    //                     console.log(i,j,k,t)
+    //                     if(hasNotParsedMath(tree[i].children[j].children[k].children[t].children))
+    //                         return [i,j,k,t]
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     for(let j = 0; j<tree[i].children.length; j++){
+    //         if(tree[i]?.children[j]?.children){
+    //             if(hasNotParsedMath(tree[i].children[j].children))
+    //                 return [i,j]
+    //         }
+    //     }
+        
+    // }
+    // return []
 }
 
 function getByPath(path,data){
     let t = data
     for(let i of path){
-        t = t[i].children
+        t = t.children[i]
     }
     return t
+}
+
+function setByPath(obj,path,data){
+    if(path.length==0)
+        obj.children = data.children
+    let p = obj;
+    for(let i of path)
+        p = obj.children[i]
+    p.children=data.children
+
 }
 
 // has some not tree'ed parts
@@ -475,59 +528,56 @@ let testAfterBraces=[
     {text:'9',},
     
 ]
-                    printConsoleTree({text:'tree',children:mathTreeTestedInConsole(testAfterBraces)})
-                    console.log(findNorParsedMath(testAfterBraces)) // 0 0 
-                    console.log(hasNotParsedMath(testAfterBraces[0].children[0].children))
+//                     printConsoleTree({text:'tree',children:mathTreeTestedInConsole(testAfterBraces)})
+//                     console.log(findNotParsedMath(testAfterBraces)) // 0 0 
+//                     console.log(hasNotParsedMath(testAfterBraces[0].children[0].children))
 
 
-                    let oneMore = true;
+//                     let oneMore = true;
 
-                    let addr;
+//                     let addr;
 
-                    let dt;
+//                     let dt;
 
-                    let was = null
-                    for(let loops = 0; ; loops++){
-                        addr = findNorParsedMath(testAfterBraces)
-                        dt = {v:getByPath(addr,testAfterBraces)}
-                        dt.v = mathTreeTestedInConsole(dt.v)
-                        console.log('next should be '+findNorParsedMath(testAfterBraces))
-                        if(JSON.stringify(was)==JSON.stringify(findNorParsedMath(testAfterBraces))) 
-                            break
-                        was = findNorParsedMath(testAfterBraces)
-                    }
-
-
-// addr = findNorParsedMath(testAfterBraces)
-// dt = {v:getByPath(addr,testAfterBraces)}
-// dt.v = mathTreeTestedInConsole(dt.v)
+//                     let was = null
+//                     for(let loops = 0; ; loops++){
+//                         addr = findNotParsedMath(testAfterBraces)
+//                         dt = {v:getByPath(addr,testAfterBraces)}
+//                         dt.v = mathTreeTestedInConsole(dt.v)
+//                         console.log('next should be '+findNotParsedMath(testAfterBraces))
+//                         if(JSON.stringify(was)==JSON.stringify(findNotParsedMath(testAfterBraces))) 
+//                             break
+//                         was = findNotParsedMath(testAfterBraces)
+//                     }
 
 
-console.log(findNorParsedMath(testAfterBraces)) // 0 1
-// testAfterBraces[0].children[1].children = mathTreeTestedInConsole(testAfterBraces[0].children[1].children)
-// console.log(findNorParsedMath(testAfterBraces)) // 1 0
-// testAfterBraces[1].children[0].children = mathTreeTestedInConsole(testAfterBraces[1].children[0].children)
-// console.log(findNorParsedMath(testAfterBraces)) // 1 0
-printConsoleTree({text:'tree',children:mathTreeTestedInConsole(testAfterBraces)})
-while(1){}
-console.log('-------------')
+// // addr = findNorParsedMath(testAfterBraces)
+// // dt = {v:getByPath(addr,testAfterBraces)}
+// // dt.v = mathTreeTestedInConsole(dt.v)
+
+
+// console.log(findNotParsedMath(testAfterBraces)) // 0 1
+// // testAfterBraces[0].children[1].children = mathTreeTestedInConsole(testAfterBraces[0].children[1].children)
+// // console.log(findNorParsedMath(testAfterBraces)) // 1 0
+// // testAfterBraces[1].children[0].children = mathTreeTestedInConsole(testAfterBraces[1].children[0].children)
+// // console.log(findNorParsedMath(testAfterBraces)) // 1 0
+// printConsoleTree({text:'tree',children:mathTreeTestedInConsole(testAfterBraces)})
+// // while(1){}
+// console.log('-------------')
 
 let ftp = new FullTreeParser(`
-    module (main) 
+    module (main) begin
 
-        z = 1*2+302*(4+2*0)
-        k=0
 
-        y = 0 + 7 *(2+1)
-        z = 2 * (2 + 2) + 0
-        t = 2 * (8 + 9 * (6 - 4 ))
-        if (x>0) begin
-            k = 1+2*4* 9*6 +0
-            if(y<4) begin
-                x = y
-            end
-        end
-        7*9
+    x = 0
+    y = x  + 2 
+    
+    if ( x > 0 ) begin
+        x = 0
+    end
+    
+        
+
     end
 `)
 
@@ -547,22 +597,54 @@ let ko = groupBy(d,'lastLevelType',true).children[1];
 // let t = multiplyNest(ko)
 // console.log(t)
 printConsoleTree(ko)
-console.log(ko)
+// while(true)
+// console.log(ko)
 
 testAfterBraces = ko
 
- oneMore = true;
+ let oneMore = true;
 
- was = null
-for(let loops = 0; ; loops++){
-    addr = findNorParsedMath(testAfterBraces)
-    dt = {v:getByPath(addr,testAfterBraces)}
-    dt.v = mathTreeTestedInConsole(dt.v)
-    console.log('next should be '+findNorParsedMath(testAfterBraces))
-    if(JSON.stringify(was)==JSON.stringify(findNorParsedMath(testAfterBraces))) 
+ let was = null
+// for(let loops = 0; ; loops++){
+//     let addr = findNotParsedMath(ko)
+//     console.log('addr:',addr)
+//     // while(1){}
+//     let dt = getByPath(addr,ko)
+//     console.log(dt,'DT2')
+//     // while(1){}
+//     // printConsoleTree(dt.children)
+//     dt.children = mathTreeTestedInConsole(dt.children)
+//     // printConsoleTree({children:dt})
+//     setByPath (ko,addr,dt)
+//     // ko = dt
+
+//     // console.log('next should be '+findNotParsedMath(testAfterBraces))
+//     // if(JSON.stringify(was)==JSON.stringify(findNotParsedMath(testAfterBraces))) 
+//     //     break
+//     was = findNotParsedMath(ko)
+//     // console.log(was)
+//     // while(1){}
+//     if(!was || !was.length){
+        
+//         printConsoleTree({ko})
+//     }
+//     break
+// }
+
+while(true){
+
+    // console.log('ko',JSON.stringify(ko))
+    let addr = findNotParsedMath(ko)
+    // printConsoleTree(ko)
+    // console.log('addr',addr) // [5, 0]
+    
+    if(addr){
+        let dt = getByPath(addr,ko)
+        dt.children = mathTreeTestedInConsole(dt.children)
+        // setByPath (ko,addr,dt)
+    }
+    else{
         break
-    was = findNorParsedMath(testAfterBraces)
+    }
 }
-
-// console.log(ftp.levelize()[0].children[1])
-// ftp.levelGroups()
+printConsoleTree(ko)
