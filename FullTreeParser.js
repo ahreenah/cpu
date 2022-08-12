@@ -496,28 +496,30 @@ function setByPath(obj,path,data){
 let ftp = new FullTreeParser(`
     module (main) begin
 
-    var begin
-        x, y :  unsigned
-        arr : unsigned[3]
-    end
-
-    func (test) [x, y, t] begin
-        k = 0
-        return (k)
-    end
-
-    x = 0
-    y = x  + 2 
-    
-    if ( x > y ) begin
-        x = 0
-        
-        if ( x > 0 ) begin
-            x = 0
+        var begin
+            x, y :  unsigned
+            arr : unsigned[3]
         end
-    end
-    
+
+        func (test) [x, y, t] begin
+            var begin
+                t, po: unsigned
+            end
+            var(q:quick)
+            k = 0
+            return (k)
+        end
+
+        x = 0
+        y = x  + 2 
         
+        if ( x > y ) begin
+            x = 0
+            
+            if ( x > 0 ) begin
+                x = 0
+            end
+        end
 
     end
 `)
