@@ -284,7 +284,7 @@ function multiplyNest(d){
 
 function mathTreeTestedInConsole(arr){
     // console.log(arr)
-    for(let signs of[['*','/'],['+','-'],['<','>'],['=']]){
+    for(let signs of[['*','/'],['+','-'],['<','>'],['='],[',',';'],[':']]){
         let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
         let hasChildren = arr[center]?.children?.length
         if(center!=-1){
@@ -456,78 +456,6 @@ function setByPath(obj,path,data){
 
 }
 
-// has some not tree'ed parts
-let testAfterBraces=[
-    {text:'if',children:[
-        {text:'(',children:[
-
-            {text:'x'},
-            {text:'>'},
-            {text:'y',},
-        ]},
-        {text:'begin',children:[
-            {text:'t'},
-            {text:'='},
-            {text:'x'},
-            
-        ]},
-        {text:'if',children:[
-            {text:'(',children:[
-    
-                {text:'x'},
-                {text:'>'},
-                {text:'y',},
-            ]},
-            {text:'begin',children:[
-                {text:'t'},
-                {text:'='},
-                {text:'x'},
-            ]},
-            {text:'if',children:[
-                {text:'(',children:[
-        
-                    {text:'x'},
-                    {text:'>'},
-                    {text:'11',},
-                ]},
-                {text:'begin',children:[
-                    {text:'t'},
-                    {text:'='},
-                    {text:'x'},
-                ]}
-            ]},
-        ]},
-    ]},
-    {text:'if',children:[
-        {text:'(',children:[
-
-            {text:'x'},
-            {text:'>'},
-            {text:'y',},
-        ]},
-        {text:'begin',children:[
-            {text:'t'},
-            {text:'='},
-            {text:'x'},
-        ]}
-    ]},
-    {text:'x'},
-    {text:'='},
-    {text:'2',},
-    {text:'+',},
-    {text:'2',},
-    {text:'*',},
-    {text:'4',},
-    {text:'*',children:[
-        {text:'2',},
-        {text:'+',},
-        {text:'2',}
-    ]},
-    {text:'Y'},
-    {text:'='},
-    {text:'9',},
-    
-]
 //                     printConsoleTree({text:'tree',children:mathTreeTestedInConsole(testAfterBraces)})
 //                     console.log(findNotParsedMath(testAfterBraces)) // 0 0 
 //                     console.log(hasNotParsedMath(testAfterBraces[0].children[0].children))
@@ -568,12 +496,25 @@ let testAfterBraces=[
 let ftp = new FullTreeParser(`
     module (main) begin
 
+    var begin
+        x, y :  unsigned
+        arr : unsigned[3]
+    end
+
+    func (test) [x, y, t] begin
+        k = 0
+        return (k)
+    end
 
     x = 0
     y = x  + 2 
     
-    if ( x > 0 ) begin
+    if ( x > y ) begin
         x = 0
+        
+        if ( x > 0 ) begin
+            x = 0
+        end
     end
     
         
@@ -600,7 +541,7 @@ printConsoleTree(ko)
 // while(true)
 // console.log(ko)
 
-testAfterBraces = ko
+let testAfterBraces = ko
 
  let oneMore = true;
 
