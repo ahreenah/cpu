@@ -8,32 +8,19 @@ function parseInput(str){
     let stack = [[]]
     for(let k of tokens){
         if(k=='('){
-            // console.log('push to stack')
             stack.push([])
         }
         else if (k==')'){
-            // console.log('stackki to stack: ', stack[stack.length-1], stack)
             stack[stack.length-2].push(stack[stack.length-1])
             stack.pop()
-            // console.log(stack)
         }
         else{
-            // console.log('push '+k)
             stack[stack.length-1].push(k)
         }
     }
     return stack
-    return tokens
 }
 
-// console.log(JSON.stringify(parseInput(`
-//     (define x 0)
-//     (+  2 2 ( + 1 1))
-//     ((if (> x 0) 
-//         (= x 2) 
-//         (= x 9)
-//     ))`  
-// )[0]))
 
 class Runner{
     constructor(){
@@ -41,8 +28,6 @@ class Runner{
     }
 
     getContext(name){
-        // console.log(`getting ${name}`)
-        // console.log(this.context)
         let i = this.context.length-1
         while(i>=0){
             if(name in this.context[i])
@@ -53,7 +38,7 @@ class Runner{
     }
     
     execLine(line){
-        // console.log('line:',line)
+        console.log('line:',line)
         // console.log(1)
         if(typeof(line[0])=='object'){
             for(let k of line){
@@ -61,16 +46,12 @@ class Runner{
             }
             return
         }
-        // console.log(2)
         if(typeof(line)!='object')
             line=[line]
-        // console.log(3)
-        // console.log(line)
         switch(line[0]){
             case 'define':
                 let name = line[1]
                 let value = this.execLine(line[2])
-                // if(!isNaN(parseInt(value)))
                     this.context[this.context.length-1][name] = value
                 return null
             case '+':{
@@ -78,7 +59,6 @@ class Runner{
                 for(let i = 1; i<line.length; i++)
                     sum+=this.execLine(line[i])
                 return sum
-                // return this.execLine(line[2]) + this.execLine(line[1])
             }
             case '-':
                 return this.execLine(line[1]) - this.execLine(line[2])
@@ -91,54 +71,57 @@ class Runner{
             case '/':
                 return this.execLine(line[1]) / this.execLine(line[2])
             case '>':
-                return this.execLine(line[1]) > this.execLine(line[2])
+                return this.execLine([line[1]]) > this.execLine([line[2]])
             case '<':
-                return this.execLine(line[1]) < this.execLine(line[2])
+                return this.execLine([line[1]]) < this.execLine([line[2]])
             case '=':
                 return this.execLine(line[1]) == this.execLine(line[2])
 
             case 'if':
                 if (this.execLine(line[1])){
                     return this.execLine(line[2])
-                } else if(this.execLine(line[3]))
-                    return this.execLine(line[3])
-                return
+                }
+                return undefined
+
             case 'while':
                 while (this.execLine(line[1]))
                     this.execLine(line[2])
                 return
+
             case 'lambda':
-                // console.log(line)
                 let args = line[1]
                 return {type:'func',code:line[2],args}
-                return 22
-            break
+                
+            case'arrayGet':{
+                let arrayName = line[1]
+                let index = this.execLine(line[2])
+                return this.getContext(arrayName)[index]
+            }
+
+                
+            case'arraySet':{
+                let arrayName = line[1]
+                let index = this.execLine(line[2])
+                let value = this.execLine(line[3])
+                return this.getContext(arrayName)[index] = value
+            }
+
             case 'print':
                 console.log(this.execLine(line[1]))
                 return 
             break
         }
-        // console.log(4)
-        if(!isNaN(parseInt(line[0])))
-            return parseInt(line[0])
-        // console.log(5)
+        if(!isNaN(parseInt(line[0]))){
+            if(line.length==1){
+                return parseInt(line[0])
+            }
+            return line.map(i => this.execLine (i) )
+        }
         let v =this.getContext(line[0]) 
-        // console.log('tassa')
-        if(v.type=='func'){
-            // return 11
+        if(v.type=='func' && line.length>1){
             this.context.push({})
-            // console.log('a')
-            // console.log('before args:',this.context)
             for(let i = 1; i<=v.args.length; i++){
-                // console.log('arg')
-                // console.log(i,':"'),
-                // console.log('line:',line)
-                // console.log(`(define ${v.args[i-1]} ${line[i]})`)
-                // console.log(':')
-                // console.log(['define', v.args[i-1], line[i]])
                 this.execLine(['define', v.args[i-1], line[i]])
-                // console.log(parseInput(`(define ${v.args[i-1]} ${line[i]})`))
-                // this.execLine(parseInput(`(define ${v.args[i-1]} ${line[i]})`))
             }
             // console.log('after args:',this.context)
             let res = this.execLine(v.code)
@@ -156,20 +139,33 @@ class Runner{
 }
 
 let r = new Runner()
-// r.execLine(['define','u',['+','x','1']])
-// r.parseExec(`(define x 1)`)
-// r.parseExec(`(define u (+ x 4))`)
-// r.parseExec(`(print u)`)
 r.parseExecMulti(`
-    (define x 2)
-    (print x)
-    (while (< x 10) (
-        (print x)
-        (define x (+ x 1)
+    (define min (lambda (x y)  
+        (if (> x y) y x)
     ))
+    (define max (lambda (x y)  
+        (if (> x y) x y)
+    ))
+
+    (define arr (47 41 1 15 12 4 39 7 14 16 17 19 5 26 46 2 25 27 11 48 24 36 9 38 49 31 40 35 42 20))
+
+    (define y 29)
+    (while (> y 0) (
+        (define x 0)
+        (while (> y x) (
+            (define t1 (arrayGet arr x))
+            (define t2 (arrayGet arr (+ x 1)))
+            (if (> t1 t2) (
+                (arraySet arr x t2)
+                (arraySet arr (+ x 1) t1)
+            ))
+            (define x (+ x 1))
+        ))
+        (define y (- y 1))
+    ))
+    (print arr)
+    
 `)
-// `)[0][0])
-// console.log(r)
 
 async function t(){
     let conif2 = (await conif).default;
@@ -190,4 +186,3 @@ async function t(){
 }
 
 t()
-// conif.getConsoleInput("> ", false);
