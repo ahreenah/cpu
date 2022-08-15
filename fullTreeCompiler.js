@@ -154,7 +154,7 @@ function compile(code){
 compile(`
 
 module (main) begin
-
+    
     var begin
         i, j, t: unsigned
         arr: unsigned[5]
