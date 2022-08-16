@@ -213,6 +213,19 @@ function mathToAsm(tree, context){
         ]
     }
 
+    if(tree.text=='$'){
+        // value by addres
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        return [
+            ...leftAsm,
+            'popmi1 0',
+            'mi1tora',
+            'memratomi2',
+            // 'mosumtomi1',
+            'pushmi2 0'
+        ]
+    }
+
     else{
         if(context[tree.text])
         return [
@@ -255,14 +268,37 @@ function compile(tree){
                 let leftChild = getChildByText(i,'left').children[0]
                 let leftName = leftChild.text
                 let isPointer = false;
+                let leftAsm=[]
                 if(leftName=='$'){
                     isPointer = true;
                     leftName = 'XX'
+                    // console.log(leftChild)
+                    console.log(getChildByText(leftChild,'right').children[0]);
+                    console.log('$ right asm',mathToAsm(getChildByText(leftChild,'right').children[0],globalVarObj))
+                    leftAsm = [
+                        // push right value
+                        'pushmi1 0',
+                        // compute address
+                        ...mathToAsm(getChildByText(leftChild,'right').children[0],globalVarObj),
+                        // get computed address
+                        'popmi2 0',
+                        // save address to ra
+                        'mi2tora',
+                        // restore computed value
+                        'popmi1 0',
+                        // save computde value to computed address
+                        'mi1tomemra'
+                    ];
+                    // while(1){}
+                }else{
+                    leftAsm =  [`mi1tomemspnegoffset ${globalVar[leftName].negOffset-1}`]
                 }
+
                 i.asm = [
                     ...parseAssign(i, globalVar),
                     'popmi1 0',
-                    `mi1tomemspnegoffset ${isPointer?'xx':globalVar[leftName].negOffset-1}`
+                    ...leftAsm
+                    // `mi1tomemspnegoffset ${isPointer?'xx':globalVar[leftName].negOffset-1}`
                 ]
                 console.log(i.asm)
                 // console.log(globalVar[leftName],i.children[0])
@@ -384,16 +420,13 @@ let code = `
 module (main) begin
     
     var begin
-        i, j, t, z, k, p, o, u: unsigned
+        i, j, t: unsigned
         arr: unsigned[11]
     end
 
-    i = 2
-    j = 16
-    while (i<=j) begin
-        i = i + 5
-    end
-    j = j
+    i = 3
+    $(3)=$(1)
+
 end
 
 
