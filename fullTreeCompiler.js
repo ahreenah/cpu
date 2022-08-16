@@ -315,9 +315,48 @@ function compile(tree){
                     '# if body',
                         `   if_${ifId}_inside:nop`,
                         ...bodyRes.map(i=> '   '+i),
-                    '#if epilog',
+                    '# if epilog',
                         `   if_${ifId}_end:nop`,
                     '# if end'
+                ]
+                // while(1){}
+            }
+            if(i.text=='while'){
+                console.log(i)
+                // console.log(i)
+                // console.log(getChildByText(i,'begin'))
+                let bodyRes = []
+                for (let k of compileLogicTree(getChildByText(i,'begin')).children.map(i=>i.asm)){
+                    bodyRes = [...bodyRes, ...k]
+                }
+                console.log(getChildByText(i,'(').children[0])
+                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],globalVar);
+                console.log('mta',condAsm)
+                // while(1){}
+                let condRes = []
+                for (let k of condAsm ){
+                    console.log(k)
+                    condRes = [...condRes, k]
+                }
+
+                let whileId = generateUID()
+                console.log(bodyRes)
+                
+                i.asm = [
+                    '# while begin',
+                        `   while_${whileId}_condition: nop`,
+                        ...condRes.map(i=> '   '+i),
+                        '   popmi1 0',
+                        '   ctomi2 0',
+                        `   jmp.eq while_${whileId}_end`,
+                        `   jmp while_${whileId}_inside`,
+                    '# while body',
+                        `   while_${whileId}_inside:nop`,
+                        ...bodyRes.map(i=> '   '+i),
+                    '# while epilog',
+                        `   jmp while_${whileId}_condition`,
+                        `   while_${whileId}_end:nop`,
+                    '# while end'
                 ]
                 // while(1){}
             }
@@ -349,14 +388,12 @@ module (main) begin
         arr: unsigned[11]
     end
 
-    i = 16
+    i = 2
     j = 16
-    t = i>j
-    z = i<j
-    k = i==j
-    p = i>=j
-    o = i<=j
-    u = i!=j
+    while (i<=j) begin
+        i = i + 5
+    end
+    j = j
 end
 
 
@@ -365,6 +402,7 @@ end
 console.log(compile(codeToTree(code)))
 
 import LLCompiler from './compiler.js'
+
 
 import Device from './index.js'
 
