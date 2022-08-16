@@ -452,8 +452,13 @@ module (main) begin
     end
 
     i = 0
+
+    func (set) {x, y} begin
+        i = 8
+    end
+
     while (i<=5) begin
-        $(@(arr)+i) = i+2
+        $(@(arr)+i) = i*i
         i = i+1
     end
 end

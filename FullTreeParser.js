@@ -400,6 +400,13 @@ printConsoleTree(codeToTree(`
 
     module (main) begin
 
+        func (set) {x, y} begin
+            i = 8
+            if(x>y) begin
+                x = y+1
+            end
+            return(x)
+        end
 
         x = 1  < = 2
         $ (2) = 0
