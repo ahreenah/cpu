@@ -11,7 +11,7 @@ const TOKEN_TYPES =  {
     KEYWORD : ['if','while','else','func','var', 'return'],
     BRACKET:  ['[',']','{','}','(',')','begin','end',],
     SEPARATOR:[',',';',],
-    UNARY_OPERATOR:['&','$','!']
+    UNARY_OPERATOR:['@','$','!']
 }
 
 class Node{
@@ -230,7 +230,7 @@ function multiplyNest(d){
 }
 
 function mathTreeTestedInConsole(arr){
-    for(let signs of[['&'],['$']]){
+    for(let signs of[['@'],['$']]){
         let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
         let hasChildren = arr[center]?.children?.length
         if(center!=-1){
@@ -402,6 +402,8 @@ printConsoleTree(codeToTree(`
 
 
         x = 1  < = 2
+        $ (2) = 0
+        t = @ (x)
     end
 
 `))

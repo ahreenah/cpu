@@ -99,6 +99,7 @@ function mathToAsm(tree, context){
             'pushmi1 0'
         ]
     }
+
     else if(tree.text=='*'){
         let leftAsm = mathToAsm(tree.children[0].children[0],context)
         let rightAsm = mathToAsm(tree.children[1].children[0],context)
@@ -111,6 +112,7 @@ function mathToAsm(tree, context){
             'pushmi1 0'
         ]
     }
+
     else if(tree.text=='>'){
         let leftAsm = mathToAsm(tree.children[0].children[0],context)
         let rightAsm = mathToAsm(tree.children[1].children[0],context)
@@ -213,6 +215,7 @@ function mathToAsm(tree, context){
         ]
     }
 
+
     if(tree.text=='$'){
         // value by addres
         let leftAsm = mathToAsm(tree.children[0].children[0],context)
@@ -224,6 +227,30 @@ function mathToAsm(tree, context){
             // 'mosumtomi1',
             'pushmi2 0'
         ]
+    }
+
+    else if (tree.text=='@'){
+        let right = getChildByText(tree,'right').children[0]
+        let varName = right.text
+        console.log(context[varName].negOffset)
+        console.log(right)
+
+        // while(1){}
+        return [
+            'pushsp 0',
+            'popmi1 0',
+            `ctomi2 ${context[varName].negOffset-1}`,
+            'mosubtomi1',
+            // // ...mathToAsm(right,context),
+            // 'pushsp 0',
+            // 'popmi1 0',
+            // 'popmi2 0',
+            // 'mosubtomi1',
+            'pushmi1 0'
+        ]
+        while(1){}
+        // let leftAsm = mathToAsm(tree.children[0].children[0],context)
+
     }
 
     else{
@@ -424,9 +451,11 @@ module (main) begin
         arr: unsigned[11]
     end
 
-    i = 3
-    $(3)=$(1)
-
+    i = 0
+    while (i<=5) begin
+        $(@(arr)+i) = i+2
+        i = i+1
+    end
 end
 
 
