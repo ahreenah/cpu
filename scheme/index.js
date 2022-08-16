@@ -38,7 +38,7 @@ class Runner{
     }
     
     execLine(line){
-        console.log('line:',line)
+        // console.log('line:',line)
         // console.log(1)
         if(typeof(line[0])=='object'){
             for(let k of line){

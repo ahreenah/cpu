@@ -38,6 +38,14 @@ class FullTreeParser{
             this.fullStr = this.fullStr.replaceAll(i,' '+i+' ')
         this.fullStr = this.fullStr.replaceAll(/ +/g,' ')
         this.tokens=this.fullStr.split(' ').filter(i=>i)
+        for(let i = 0; i<this.tokens.length; i++){
+            for(let k of ['!','>','<','='])
+                if((this.tokens[i]==k) && (this.tokens[i+1]=='=')){
+                    this.tokens[i]=k+'='
+                    this.tokens[i+1]=''
+                }
+        }
+        this.tokens = this.tokens.filter(i=>i)
     }
     tokenTypes(){ 
         function detectTokenType(token){ 
@@ -248,7 +256,7 @@ function mathTreeTestedInConsole(arr){
                 arr = mathTreeTestedInConsole(arr)
         }
     }
-    for(let signs of[['*','/'],['+','-'],['<','>'],['='],[',',';'],[':']]){
+    for(let signs of[['*','/'],['+','-'],['<','>','==','!=','>=','<='],['='],[',',';'],[':']]){
         let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
         let hasChildren = arr[center]?.children?.length
         if(center!=-1){
@@ -362,6 +370,7 @@ export function codeToTree(code){
     let ftp = new FullTreeParser(code)
 
     ftp.tokenize()
+    console.log(ftp.tokens)
     ftp.tokenTypes()
     ftp.computeLevels()
     ftp.lastLevelOnly()
@@ -391,16 +400,8 @@ printConsoleTree(codeToTree(`
 
     module (main) begin
 
-        var begin
-            i, j, t: unsigned
-            arr: unsigned[5]
-        end
 
-        x = 0
-        x = 0
-        i = 2
-
-        z = 2 + (2 + 2)
+        x = 1  < = 2
     end
 
 `))

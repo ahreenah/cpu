@@ -1,5 +1,15 @@
 import {printConsoleTree, codeToTree} from './FullTreeParser.js'
 
+function generateUID() {
+    // I generate the UID from two parts here 
+    // to ensure the random number provide enough bits.
+    var firstPart = (Math.random() * 46656) | 0;
+    var secondPart = (Math.random() * 46656) | 0;
+    firstPart = ("000" + firstPart.toString(36)).slice(-3);
+    secondPart = ("000" + secondPart.toString(36)).slice(-3);
+    return firstPart + secondPart;
+}
+
 function getChildByText(tree, text){
     let res = tree.children.filter(i=>i.text==text)
     if(res.length>1)throw new Error(`More than one element with text "${text}"`)
@@ -63,7 +73,7 @@ function parseVar(tree){
 
 function mathToAsm(tree, context){
     if(!isNaN(parseInt(tree.text))){
-        return [`pushc 0 ${tree.text}`]
+        return [`ctomi1  ${tree.text}`, `pushmi1 0`]
     }
     if(tree.text=='+'){
         let leftAsm = mathToAsm(tree.children[0].children[0],context)
@@ -101,10 +111,112 @@ function mathToAsm(tree, context){
             'pushmi1 0'
         ]
     }
+    else if(tree.text=='>'){
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        return [
+            ...leftAsm, 
+            ...rightAsm,
+            'popmi2 0',
+            'popmi1 0',
+            //
+            'ctora.gt 1',
+            'ctora.lt.eq 0',
+            'ratomi2',
+            //
+            'pushmi2 0'
+        ]
+    }
+
+    else if(tree.text=='!='){
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        return [
+            ...leftAsm, 
+            ...rightAsm,
+            'popmi2 0',
+            'popmi1 0',
+            //
+            'ctora.gt.lt 1',
+            'ctora.eq 0',
+            'ratomi2',
+            //
+            'pushmi2 0'
+        ]
+    }
+
+    else if(tree.text=='<='){
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        return [
+            ...leftAsm, 
+            ...rightAsm,
+            'popmi2 0',
+            'popmi1 0',
+            //
+            'ctora.eq.lt 1',
+            'ctora.gt 0',
+            'ratomi2',
+            //
+            'pushmi2 0'
+        ]
+    }
+
+    else if(tree.text=='>='){
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        return [
+            ...leftAsm, 
+            ...rightAsm,
+            'popmi2 0',
+            'popmi1 0',
+            //
+            'ctora.gt.eq 1',
+            'ctora.lt 0',
+            'ratomi2',
+            //
+            'pushmi2 0'
+        ]
+    }
+    
+    else if(tree.text=='<'){
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        return [
+            ...leftAsm, 
+            ...rightAsm,
+            'popmi2 0',
+            'popmi1 0',
+            //
+            'ctora.lt 1',
+            'ctora.gt.eq 0',
+            'ratomi2',
+            //
+            'pushmi2 0'
+        ]
+    }
+
+    else if(tree.text=='=='){
+        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        return [
+            ...leftAsm, 
+            ...rightAsm,
+            'popmi2 0',
+            'popmi1 0',
+            //
+            'ctora.eq 1',
+            'ctora.gt.lt 0',
+            'ratomi2',
+            //
+            'pushmi2 0'
+        ]
+    }
+
     else{
         if(context[tree.text])
         return [
-            `memspnegoffsettomi1 ${context[tree.text].negOffset}`,
+            `memspnegoffsettomi1 ${context[tree.text].negOffset - 1}`,
             `pushmi1 0`
         ]
         else{
@@ -121,14 +233,11 @@ function parseAssign(tree, context){
     let leftItem = getChildByText(tree,'left');
     printConsoleTree(leftItem)
     printConsoleTree(rightItem)
-    console.log(mathToAsm(rightItem.children[0], context))
+    return(mathToAsm(rightItem.children[0], context))
 }
 
-function compile(code){
-
-    console.log('a')
-    let tree = codeToTree(code)
-    console.log('b')
+function compile(tree){
+    console.log('got', tree)
     let globalVar = getChildByText(tree,'var')
     let parsedVar = parseVar(globalVar);
     console.log('s:',JSON.stringify(parsedVar))
@@ -139,32 +248,149 @@ function compile(code){
     }
     console.log('gvo',globalVarObj)
     globalVar = globalVarObj
+    function compileLogicTree(tree){
+        for(let i of tree.children){
+            console.log(i.text)
+            if(i.text=='='){
+                let leftChild = getChildByText(i,'left').children[0]
+                let leftName = leftChild.text
+                let isPointer = false;
+                if(leftName=='$'){
+                    isPointer = true;
+                    leftName = 'XX'
+                }
+                i.asm = [
+                    ...parseAssign(i, globalVar),
+                    'popmi1 0',
+                    `mi1tomemspnegoffset ${isPointer?'xx':globalVar[leftName].negOffset-1}`
+                ]
+                console.log(i.asm)
+                // console.log(globalVar[leftName],i.children[0])
+            }
+            if(i.text=='var'){
+                console.log(i)
+                let parsedVar = parseVar(i);
+                console.log('s:',JSON.stringify(parsedVar))
+                let globalVarObj = {}
+                console.log('gv',globalVarObj)
+                console.log('gv',globalVarObj)
+                for (let i of parsedVar.vars){
+                    globalVarObj[i.name] = i
+                }
+                console.log('gvo',globalVarObj)
+                // while(1){}
+                i.asm=[
+                    `malloc 0 ${globalVarObj[Object.keys(globalVarObj)[0]].negOffset}`,
+                    `memtosp 0`
+                ]
+            }
+            if(i.text=='if'){
+                console.log(i)
+                // console.log(i)
+                // console.log(getChildByText(i,'begin'))
+                let bodyRes = []
+                for (let k of compileLogicTree(getChildByText(i,'begin')).children.map(i=>i.asm)){
+                    bodyRes = [...bodyRes, ...k]
+                }
+                console.log(getChildByText(i,'(').children[0])
+                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],globalVar);
+                console.log('mta',condAsm)
+                // while(1){}
+                let condRes = []
+                for (let k of condAsm ){
+                    console.log(k)
+                    condRes = [...condRes, k]
+                }
+
+                let ifId = generateUID()
+                console.log(bodyRes)
+                
+                i.asm = [
+                    '# if begin',
+                        ...condRes.map(i=> '   '+i),
+                        '   popmi1 0',
+                        '   ctomi2 0',
+                        `   jmp.eq if_${ifId}_end`,
+                        `   jmp if_${ifId}_inside`,
+                    '# if body',
+                        `   if_${ifId}_inside:nop`,
+                        ...bodyRes.map(i=> '   '+i),
+                    '#if epilog',
+                        `   if_${ifId}_end:nop`,
+                    '# if end'
+                ]
+                // while(1){}
+            }
+        }
+        return tree
+    }
+    compileLogicTree(tree)
+
+    let res = []
     for(let i of tree.children){
-        console.log(i.text)
-        if(i.text=='='){
-            parseAssign(i, globalVar)
+        if (i.asm){
+            res = [...res,...i.asm]
         }
     }
+    return res.join('\n')
+    
+
     // printConsoleTree(globalVar)
     // printConsoleTree(tree)
     
     
 }
-
-compile(`
+let code = `
 
 module (main) begin
     
     var begin
-        i, j, t: unsigned
-        arr: unsigned[5]
+        i, j, t, z, k, p, o, u: unsigned
+        arr: unsigned[11]
     end
 
-    x = 0
-    x = 0
-    i = 2
-
-    z = 2 * (3 + 4) + arr
+    i = 16
+    j = 16
+    t = i>j
+    z = i<j
+    k = i==j
+    p = i>=j
+    o = i<=j
+    u = i!=j
 end
 
-`)
+
+`
+
+console.log(compile(codeToTree(code)))
+
+import LLCompiler from './compiler.js'
+
+import Device from './index.js'
+
+
+
+let lc = new LLCompiler()
+lc.parse(compile(codeToTree(code)))
+console.log(lc.getProgmemByteString())
+
+let d =new Device()
+d.progmem=eval(lc.getProgmemByteString())
+
+function runTicks(count){
+    // for(let i=0; i<count; i++){
+        while(d.cmdAddr<d.progmem.length+5){
+            d.tick();
+            // console.log('mem:', d.datamem)
+            
+            console.log('mi1: ', d.mi1)
+            console.log('mi2: ',d.mi2)
+            console.log('mem:', d.datamem)
+            console.log('sp:', d.sp)
+            console.log('ra:', d.ra)
+        }
+    // }
+}
+
+
+runTicks(50)

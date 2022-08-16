@@ -226,44 +226,91 @@ if(
     #    popmi2 5
 
     #######################################################
-    malloc 0 7
-    memtosp 0
+    #    malloc 0 7
+    #    memtosp 0
+    #
+    #    ctomi1 27
+    #    pushmi1 0
+    #    popmi1 0
+    #    mi1tomemspnegoffset 6
+    #    
+    #    ctomi1 7
+    #    pushmi1 0
+    #    popmi1 0
+    #    mi1tomemspnegoffset 5
+    #    
+    #while_ii_begin:nop
+    #    memspnegoffsettomi1 6
+    #    pushmi1 0
+    #    memspnegoffsettomi1 5
+    #    pushmi1 0
+    #    popmi2 0
+    #    popmi1 0
+    #    pushmi1 0
+    #    popmi1 0
+    #jmp.gt while_ii_inside
+    #jmp while_ii_end
+    #while_ii_inside: nop
+    #    memspnegoffsettomi1 6
+    #    pushmi1 0
+    #    memspnegoffsettomi1 5
+    #    pushmi1 0
+    #    popmi2 0
+    #    popmi1 0
+    #    mosubtomi1
+    #    pushmi1 0
+    #    popmi1 0
+    #    mi1tomemspnegoffset 6
+    #    jmp while_ii_begin
+    #while_ii_end:nop
 
-    ctomi1 27
+    malloc 0 9
+    memtosp 0
+    ctomi1  16
     pushmi1 0
     popmi1 0
-    mi1tomemspnegoffset 6
-    
-    ctomi1 7
+    mi1tomemspnegoffset 8
+    ctomi1  9
     pushmi1 0
     popmi1 0
-    mi1tomemspnegoffset 5
-    
-while_ii_begin:nop
-    memspnegoffsettomi1 6
+    mi1tomemspnegoffset 7
+    # if begin
+       memspnegoffsettomi1 8
+       pushmi1 0
+       memspnegoffsettomi1 7
+       pushmi1 0
+       popmi2 0
+       popmi1 0
+       ctora.gt 1
+       ctora.lt.eq 0
+       ratomi2
+       pushmi2 0
+       popmi1 0
+       ctomi2 0
+       jmp.eq if_2tn4h8_end
+       jmp if_2tn4h8_inside
+    # if body
+       if_2tn4h8_inside:nop
+       memspnegoffsettomi1 7
+       pushmi1 0
+       popmi1 0
+       mi1tomemspnegoffset 8
+    #if epilog
+       if_2tn4h8_end:nop
+    # if end
+    ctomi1  4
     pushmi1 0
-    memspnegoffsettomi1 5
+    ctomi1  2
     pushmi1 0
     popmi2 0
     popmi1 0
-    pushmi1 0
+    ctora.gt 1
+    ctora.lt.eq 0
+    ratomi2
+    pushmi2 0
     popmi1 0
-jmp.gt while_ii_inside
-jmp while_ii_end
-while_ii_inside: nop
-    memspnegoffsettomi1 6
-    pushmi1 0
-    memspnegoffsettomi1 5
-    pushmi1 0
-    popmi2 0
-    popmi1 0
-    mosubtomi1
-    pushmi1 0
-    popmi1 0
-    mi1tomemspnegoffset 6
-    jmp while_ii_begin
-while_ii_end:nop
-    `)
+    mi1tomemspnegoffset 7
+`)
 ){
     
 console.log(c1.getProgmemByteString())
@@ -272,20 +319,22 @@ d.progmem=eval(c1.getProgmemByteString())
 
 // do not sythesize
 function runTicks(count){
-    for(let i=0; i<count; i++){
-        d.tick();
-        // console.log('mem:', d.datamem)
-        
-        console.log('mi1: ', d.mi1)
-        console.log('mi2: ',d.mi2)
-        console.log('mem:', d.datamem)
-        console.log('sp:', d.sp)
-        // console.log('ra:', d.ra)
-    }
+    // for(let i=0; i<count; i++){
+        while(d.cmdAddr<d.progmem.length+5){
+            d.tick();
+            // console.log('mem:', d.datamem)
+            
+            console.log('mi1: ', d.mi1)
+            console.log('mi2: ',d.mi2)
+            console.log('mem:', d.datamem)
+            console.log('sp:', d.sp)
+            console.log('ra:', d.ra)
+        }
+    // }
 }
 
 
-runTicks(90)
+runTicks(50)
 console.log('mem:', d.datamem)
 
 console.log('mi1: ', d.mi1)
@@ -295,3 +344,4 @@ console.log('ra:', d.ra)
 }else
     console.log('error')
 
+console.log(d.progmem.length)

@@ -103,22 +103,23 @@ export default class Device{
     get arg2(){ return (this.progmem[this.cmdAddr+2])>>0 }
     get mosum(){ return this.mi1+this.mi2 }
     get mosub(){ return this.mi1-this.mi2 }
+    get momul(){ return this.mi1*this.mi2 }
     get mogt(){ return this.mi1>this.mi2}
     get molt(){ return this.mi1<this.mi2}
     get moeq(){ return this.mi1==this.mi2}
 
     get execute(){ return (
         this.commandCondition==0 ||
-        ((this.commandCondition==1) && this.moeq) || 
-        ((this.commandCondition==2) && this.mogt) ||
-        ((this.commandCondition==4) && this.molt)
+        ((this.commandCondition%2>0) && this.moeq) || 
+        ((this.commandCondition%4>>1>0) && this.mogt) ||
+        ((this.commandCondition%8>>2>0) && this.molt)
     ) }
     loadDatamem(v){
         this.datamem=v;
     }
     // posedge clk
     tick(){
-        console.log(`executiong address:`,this.cmdAddr,`  command: `,this.commandCode, `condition: `, this.commandCondition)
+        console.log(`executiong address:`,this.cmdAddr,`  command: `,this.commandCode, `condition: `, this.commandCondition, 'execute: ',this.execute)
 
         switch(this.commandCode){
             case c.JMP:
@@ -213,95 +214,127 @@ export default class Device{
             break
             case c.CTORA:
                 console.log("command CTORA")
-                this.ra = this.arg1;
+                if(this.execute)
+                    this.ra = this.arg1;
                 this.cmdAddr+=2;
             break
             case c.INCRA:
                 console.log("command INCRA")
-                this.ra++;
+                if(this.execute)
+                    this.ra++;
                 this.cmdAddr++;
             break
             case c.DECRA:
                 console.log('command DECRA')
-                this.ra--;
+                if(this.execute)
+                    this.ra--;
                 this.cmdAddr++;
             break
             case c.MEMRATOMI2:
                 console.log("command MEMRATOMI2");
-                this.mi2 = this.datamem[this.ra];
+                if(this.execute)
+                    this.mi2 = this.datamem[this.ra];
                 this.cmdAddr+=1;
             break
             case c.MI2TOMEMRA:
                 console.log("command MI2TOMEMRA");
-                this.datamem[this.ra] = this.mi2;
+                if(this.execute)
+                    this.datamem[this.ra] = this.mi2;
                 this.cmdAddr+=1;
             break
             case c.MI2TORA:
                 console.log("command MI2TORA");
-                this.ra=this.mi2;
+                if(this.execute)
+                    this.ra=this.mi2;
                 this.cmdAddr+=1;
             break
             case c.RATOMI2:
                 console.log("command RATOMI2");
-                this.mi2=this.ra;
+                if(this.execute)
+                    this.mi2=this.ra;
                 this.cmdAddr+=1;
             break
             case c.MI1TORA:
                 console.log("command MI1TORA");
-                this.ra=this.mi1;
+                if(this.execute)
+                    this.ra=this.mi1;
                 this.cmdAddr+=1;
             break
             case c.MI1TOMEMRA:
-                this.datamem[this.ra]=this.mi1;
+                if(this.execute)
+                    this.datamem[this.ra]=this.mi1;
                 this.cmdAddr++;
             break
             case c.PUSHMI1:
                 console.log('command PUSHMI1')
-                this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi1
-                this.datamem[this.arg1]++
+                if(this.execute){
+                    this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi1
+                    this.datamem[this.arg1]++
+                }
                 this.cmdAddr+=2;
             break
             case c.POPMI1:
                 console.log('command POPMI1')
-                this.mi1 = this.datamem[this.arg1+this.datamem[this.arg1]]
-                this.datamem[this.arg1]--
+                if(this.execute){
+                    this.mi1 = this.datamem[this.arg1+this.datamem[this.arg1]]
+                    this.datamem[this.arg1]--
+                }
                 this.cmdAddr+=2;
             break
             case c.PUSHMI2:
                 console.log('command PUSHMI2')
-                this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi2
-                this.datamem[this.arg1]++
+                if(this.execute){
+                    this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi2
+                    this.datamem[this.arg1]++
+                }
                 this.cmdAddr+=2;
             break
             case c.POPMI2:
                 console.log('command POPMI2')
-                this.mi2 = this.datamem[this.arg1+this.datamem[this.arg1]]
-                this.datamem[this.arg1]--
+                if(this.execute){
+                    this.mi2 = this.datamem[this.arg1+this.datamem[this.arg1]]
+                    this.datamem[this.arg1]--
+                }
                 this.cmdAddr+=2;
             break
             case c.PUSHMI1MI2:
                 console.log('command PUSHMI1MI2')
-                this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi2
-                this.datamem[this.arg1]++
+                if(this.execute){
+                    this.datamem[this.arg1+this.datamem[this.arg1]+1] = this.mi2
+                    this.datamem[this.arg1]++
+                }
                 this.cmdAddr+=2;
             break
             case c.POPMI1MI2:
                 console.log('command POPMI1MI2')
-                this.mi2 = this.datamem[this.arg1+this.datamem[this.arg1]]
-                this.datamem[this.arg1]--
+                if(this.execute){
+                    this.mi2 = this.datamem[this.arg1+this.datamem[this.arg1]]
+                    this.datamem[this.arg1]--
+                }
                 this.cmdAddr+=2;
             break
             case c.CALL:
+                //TODO: check!
                 console.log('command CALL '+this.arg1+' '+this.arg2)
                 // jump
-                this.cmdAddr=this.arg1;
+                if(this.execute){
+                    this.cmdAddr=this.arg1;
+                }
+                else
+                    this.cmdAddr+=2
             break
             case c.RET:
+                //TODO: check!
                 let addr = this.arg1;
                 console.log('command RET '+this.arg1+' '+this.datamem[this.arg1])
-                this.cmdAddr = this.datamem[this.arg1+this.datamem[this.arg1]]
-                console.log('DEC ADDR '+addr)
-                this.datamem[addr]--;
+                if(this.execute){
+                    this.cmdAddr = this.datamem[this.arg1+this.datamem[this.arg1]]
+                    console.log('DEC ADDR '+addr)
+                    this.datamem[addr]--;
+                }
+                else
+                    this.cmdAddr+=2
+                
             break
             case c.PUSHADDR:
                 console.log('command PUSHADDR '+this.arg1+' '+this.arg2)
@@ -412,6 +445,14 @@ export default class Device{
                 this.sp = this.datamem[this.arg1+this.datamem[this.arg1]]
                 this.datamem[this.arg1]--
                 this.cmdAddr+=2;
+            break
+
+            
+            case c.MOMULTOMI1:
+                console.log('command MOMULTOMI1');
+                if(this.execute)
+                    this.mi1 = this.momul; 
+                this.cmdAddr++;
             break
 
             

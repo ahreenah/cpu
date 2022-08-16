@@ -774,34 +774,13 @@ console.log('+++++++++++++++++++++++++++++++++++++')
 c.insertBeginNumbers();
 c.insertAddressesToFuncs()
 console.log(c.insertAddressesToCode().join('\n'))
-// while(1){}
-// console.log(c.insertAddressesToCode())
-// console.log('\n\n+++++++++++++++++++++++++++++++++++++')
-// console.log("FULL ASM: ")
-// console.log('+++++++++++++++++++++++++++++++++++++')
-// console.log(c.insertAddressesToCode().join('\n'))
-// console.log('\n\n+++++++++++++++++++++++++++++++++++++')
-// console.log("FULL BYTE CODE: ")
-// console.log('+++++++++++++++++++++++++++++++++++++')
 
 let c1 = new LLCompiler()
 c1.parse(c.insertAddressesToCode().join('\n'))
 
 console.log(c1.getProgmemByteString())
-// console.log('\n\n+++++++++++++++++++++++++++++++++++++')
-// console.log("EXECUTION RESULT: ")
-// console.log('+++++++++++++++++++++++++++++++++++++')
 let d = new Device()
 d.progmem=eval(c1.getProgmemByteString())
-// console.log(c1.getProgmemDump().length)
-
-
-// // do not sythesize
-// function runTicks(count){
-//     for(let i=0; i<count; i++){
-//         d.tick();
-//     }
-// }
 
 function run(){
     while (d.cmdAddr<c1.getProgmemDump().length){
@@ -815,7 +794,6 @@ function run(){
     }
 }
 
-// // runTicks(200)
 if(testFlags.exec){
     run()
     console.log('mi1: ', d.mi1)
@@ -823,6 +801,5 @@ if(testFlags.exec){
     console.log('mem:', d.datamem.filter((i,num)=>num<27))
     console.log('ra:', d.ra)
 }
-// // import Device from ".";
 
 console.log('end')
