@@ -562,13 +562,11 @@ module (main) begin
         var begin
             i,k: unsigned
         end
-        i = 11
-        a  = x+y+i
+        $(y)  = x+y
     end
 
-    a = 20
-
-    u(9,2+2)
+    b = 8
+    u(b,@(b))
 
 end
 
