@@ -535,31 +535,22 @@ let code = `
 module (main) begin
     
     var begin
-        i, j, k: unsigned
-        p: unsigned
+        a, b: unsigned
     end
 
 
     func (u){x,y} begin    
         var begin
-            w: unsigned
+            i, j: unsigned
         end
-
-        i=w
-        while (i>j) begin 
-            i=j
-        end
-        if(i>2) begin 
-            i = 2
-        end
+        a = x
+        y = 29
         i = 27
+        j = 28
     end
 
-    while (i>j) begin 
-        i=j
-        if (i>j) begin 
-            i=j
-        end
+    if (a>b) begin 
+        a=b
     end
 
     
