@@ -1,4 +1,5 @@
 import {printConsoleTree, codeToTree} from './FullTreeParser.js'
+let args = process.argv.slice(2)
 
 function generateUID() {
     // I generate the UID from two parts here 
@@ -253,6 +254,7 @@ function mathToAsm(tree, context){
 
     }
 
+
     else{
         if(context[tree.text])
         return [
@@ -288,9 +290,36 @@ function compile(tree){
     }
     console.log('gvo',globalVarObj)
     globalVar = globalVarObj
-    function compileLogicTree(tree){
+    function compileLogicTree(tree, localContext, globalContextOffset) {
+        console.log('tree',tree)
+        let availableVars = globalVar
+        let availableVarsObj = globalVarObj
+        if(globalContextOffset){
+            console.log('-------------------')
+            console.log(localContext)
+            console.log(globalContextOffset)
+            let globalContextArr = Object.keys(globalVarObj).map(i=>globalVarObj[i])
+            console.log()
+            let totalVars = [...globalContextArr.map(i=>({
+                name:i.name,
+                size:i.size,
+                negOffset:i.negOffset+globalContextOffset
+            })),...localContext.map(i=>({
+                ...i, 
+                negOffset:i.negOffset+2
+            }))]
+            console.log('=======================')
+            console.log(globalVar)
+            console.log(globalVarObj)
+            console.log(totalVars)
+            availableVars = totalVars
+            availableVarsObj = {}
+            for(let k of availableVars) 
+                availableVarsObj[k.name] = k
+            
+            // while(1){}
+        }
         for(let i of tree.children){
-            console.log(i.text)
             if(i.text=='='){
                 let leftChild = getChildByText(i,'left').children[0]
                 let leftName = leftChild.text
@@ -301,12 +330,12 @@ function compile(tree){
                     leftName = 'XX'
                     // console.log(leftChild)
                     console.log(getChildByText(leftChild,'right').children[0]);
-                    console.log('$ right asm',mathToAsm(getChildByText(leftChild,'right').children[0],globalVarObj))
+                    console.log('$ right asm',mathToAsm(getChildByText(leftChild,'right').children[0],availableVarsObj))
                     leftAsm = [
                         // push right value
                         'pushmi1 0',
                         // compute address
-                        ...mathToAsm(getChildByText(leftChild,'right').children[0],globalVarObj),
+                        ...mathToAsm(getChildByText(leftChild,'right').children[0],availableVarsObj),
                         // get computed address
                         'popmi2 0',
                         // save address to ra
@@ -318,11 +347,11 @@ function compile(tree){
                     ];
                     // while(1){}
                 }else{
-                    leftAsm =  [`mi1tomemspnegoffset ${globalVar[leftName].negOffset-1}`]
+                    leftAsm =  [`mi1tomemspnegoffset ${availableVarsObj[leftName].negOffset-1}`]
                 }
 
                 i.asm = [
-                    ...parseAssign(i, globalVar),
+                    ...parseAssign(i, availableVarsObj),
                     'popmi1 0',
                     ...leftAsm
                     // `mi1tomemspnegoffset ${isPointer?'xx':globalVar[leftName].negOffset-1}`
@@ -356,7 +385,7 @@ function compile(tree){
                     bodyRes = [...bodyRes, ...k]
                 }
                 console.log(getChildByText(i,'(').children[0])
-                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],globalVar);
+                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],availableVarsObj);
                 console.log('mta',condAsm)
                 // while(1){}
                 let condRes = []
@@ -393,7 +422,7 @@ function compile(tree){
                     bodyRes = [...bodyRes, ...k]
                 }
                 console.log(getChildByText(i,'(').children[0])
-                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],globalVar);
+                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],availableVarsObj);
                 console.log('mta',condAsm)
                 // while(1){}
                 let condRes = []
@@ -423,6 +452,65 @@ function compile(tree){
                 ]
                 // while(1){}
             }
+            else if (i.text=='func'){
+                // while(1){console.log('func')}
+                let funcName = i.children[0].children[0].text
+                let bodyRes = []
+                printConsoleTree(i)
+                // crashes when function has arguments
+                let bodyChild = getChildByText(i,'begin')
+                let localVarSection = getChildByText(bodyChild,'var')
+                if(bodyChild.children[0].text=='var')
+                    bodyChild.children = bodyChild.children.splice(1)
+                console.log('body child:',bodyChild)
+                let localVars = parseVar(localVarSection)
+                console.log('local var:',localVars)
+                // while(1){}
+                let args = arrayFromBin(getChildByText(i,'{').children[0],',')
+                for(let k=args.length-1; k>=0; k--){
+                    args[k]={
+                        name:args[k].text,
+                        size:1,
+                        negOffset:args.length-k
+                    }
+                }
+                console.log(getChildByText(i,'begin'))
+                args = args.map(i=>({...i, negOffset:i.negOffset+localVars.totalSize+2})) //TODO: check
+                console.log(args)
+                console.log(localVars)
+                let argsAndLocalVars =[...args, ...localVars.vars]
+                console.log(argsAndLocalVars)
+                // while(1){}
+
+                // vars = vars.map()
+                // console.log('args:',args)
+                // while(1){}
+
+                for (let k of compileLogicTree(getChildByText(i,'begin'),argsAndLocalVars,argsAndLocalVars[0].negOffset+2).children.map(i=>i.asm)){
+                    console.log('k:',k)
+                    bodyRes = [...bodyRes, ...k]
+                }
+                i.asm = [
+                    `# func ${funcName} begin`,
+                    `   jmp func_${funcName}_end`,
+                    `   func_${funcName}_start:nop`,
+                    `   malloc 0 2`,// TODO: calc size
+                    `   memtosp 0`,
+                    `# func body`,
+                    ...bodyRes.map(i=> '   '+i),
+                    '# func epilog',
+                    `   mfree 0 2`, // TODO: calc size
+                    `   popmi2 0`,
+                    `   pushmi1 0`,
+                    `   pushmi2 0`,
+                    `   ret 0`,
+                    `   func_${funcName}_end:nop`,
+                    '# func end'
+                ]
+                console.log('function build was successful')
+                // while(1){}
+                console.log(i)
+           }
         }
         return tree
     }
@@ -447,27 +535,45 @@ let code = `
 module (main) begin
     
     var begin
-        i, j, t: unsigned
-        arr: unsigned[11]
+        i, j, k: unsigned
+        p: unsigned
     end
 
-    i = 0
 
-    func (set) {x, y} begin
-        i = 8
+    func (u){x,y} begin    
+        var begin
+            w: unsigned
+        end
+
+        i=w
+        while (i>j) begin 
+            i=j
+        end
+        if(i>2) begin 
+            i = 2
+        end
+        i = 27
     end
 
-    while (i<=5) begin
-        $(@(arr)+i) = i*i
-        i = i+1
+    while (i>j) begin 
+        i=j
+        if (i>j) begin 
+            i=j
+        end
     end
+
+    
 end
 
 
 `
 
-console.log(compile(codeToTree(code)))
+printConsoleTree(codeToTree(code))
+// while(1){}
 
+console.log(compile(codeToTree(code)))
+if(args.indexOf('--run')==-1)
+    while(1){}  
 import LLCompiler from './compiler.js'
 
 
@@ -497,5 +603,5 @@ function runTicks(count){
     // }
 }
 
-
+if(args.indexOf('--run')!=-1)
 runTicks(50)

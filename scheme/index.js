@@ -41,10 +41,11 @@ class Runner{
         // console.log('line:',line)
         // console.log(1)
         if(typeof(line[0])=='object'){
+            let res = undefined
             for(let k of line){
-                this.execLine(k)
+                res = this.execLine(k)
             }
-            return
+            return res
         }
         if(typeof(line)!='object')
             line=[line]
@@ -80,8 +81,11 @@ class Runner{
             case 'if':
                 if (this.execLine(line[1])){
                     return this.execLine(line[2])
+                }else{
+                    if(line[3])
+                        return this.execLine(line[3])
+                    return undefined
                 }
-                return undefined
 
             case 'while':
                 while (this.execLine(line[1]))
@@ -143,8 +147,37 @@ r.parseExecMulti(`
     (define min (lambda (x y)  
         (if (> x y) y x)
     ))
+
     (define max (lambda (x y)  
         (if (> x y) x y)
+    ))
+
+    (define gt2 (lambda (x)
+        (if (> x 2) 
+            (+ (gt2 (- x 1)) (gt2 (- x 2)))
+            1
+        )
+    ))
+
+    (define x2p3 (lambda (x)
+        (
+
+            (define add1 (lambda (x)
+                (
+                    (+ x 1)
+                )
+            ))
+            (define add2 (lambda (x)
+                (
+                    (+ x 2)
+                )
+            ))
+
+            (define t (add2 x))
+            (define k (add2 x))
+
+            (+ k t)
+        )
     ))
 
     (define arr (47 41 1 15 12 4 39 7 14 16 17 19 5 26 46 2 25 27 11 48 24 36 9 38 49 31 40 35 42 20))
@@ -163,7 +196,9 @@ r.parseExecMulti(`
         ))
         (define y (- y 1))
     ))
-    (print arr)
+    (print (gt2 2))
+    (print (max 4 9))
+    (print (gt2 7))
     
 `)
 

@@ -177,7 +177,13 @@ function groupBy(arr, field, recursive){
     
     for(let k = 0 ; k< res[1].children.length; k++){
         if(res[1].children[k].text=='if' || res[1].children[k].text=='while'|| res[1].children[k].text=='func'|| res[1].children[k].text== 'module')
-        res[1].children[k]=groupBy(res[1].children[k],field,false)
+            res[1].children[k]=groupBy(res[1].children[k],field,false)
+    }
+    if(res[2]){
+        for(let k = 0 ; k< res[2].children.length; k++){
+            if(res[2].children[k].text=='if' || res[2].children[k].text=='while'|| res[2].children[k].text=='func'|| res[2].children[k].text== 'module')
+                res[2].children[k]=groupBy(res[2].children[k],field,false)
+        }
     }
     return {text:name,children:res}
 }
@@ -400,17 +406,22 @@ printConsoleTree(codeToTree(`
 
     module (main) begin
 
-        func (set) {x, y} begin
-            i = 8
-            if(x>y) begin
-                x = y+1
-            end
-            return(x)
-        end
-
         x = 1  < = 2
         $ (2) = 0
         t = @ (x)
+        
+        if(x) begin
+            y = 0
+            if(x>0) begin
+                t = 0
+            end
+        end
+        func(x){p} begin
+            y = 0
+            if(x>0) begin
+                t = 0
+            end
+        end
     end
 
 `))
