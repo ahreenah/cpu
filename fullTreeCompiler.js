@@ -359,7 +359,7 @@ function compile(tree){
                 console.log(i.asm)
                 // console.log(globalVar[leftName],i.children[0])
             }
-            if(i.text=='var'){
+            else if(i.text=='var'){
                 console.log(i)
                 let parsedVar = parseVar(i);
                 console.log('s:',JSON.stringify(parsedVar))
@@ -376,7 +376,7 @@ function compile(tree){
                     `memtosp 0`
                 ]
             }
-            if(i.text=='if'){
+            else if(i.text=='if'){
                 console.log(i)
                 // console.log(i)
                 // console.log(getChildByText(i,'begin'))
@@ -413,7 +413,7 @@ function compile(tree){
                 ]
                 // while(1){}
             }
-            if(i.text=='while'){
+            else if(i.text=='while'){
                 console.log(i)
                 // console.log(i)
                 // console.log(getChildByText(i,'begin'))
@@ -475,7 +475,7 @@ function compile(tree){
                     }
                 }
                 console.log(getChildByText(i,'begin'))
-                args = args.map(i=>({...i, negOffset:i.negOffset+localVars.totalSize+2})) //TODO: check
+                args = args.map(i=>({...i, negOffset:i.negOffset+localVars.totalSize})) //TODO: check
                 console.log(args)
                 console.log(localVars)
                 let argsAndLocalVars =[...args, ...localVars.vars]
@@ -510,7 +510,26 @@ function compile(tree){
                 console.log('function build was successful')
                 // while(1){}
                 console.log(i)
-           }
+            }
+            else{
+                console.log('text:',i)
+                console.log(i.children[0].text!=':')
+                if(i.children[0].text!=':'){
+                    i.asm = [
+                    ]
+                    for(let k of arrayFromBin(i.children[0],',').map(i=>mathToAsm(i,globalVar))){
+                        i.asm = [...i.asm, ...k]
+                    }
+                    i.asm.push('pushsp 0')
+                    i.asm.push('pushaddr 0 5')
+                    i.asm.push(`call func_${i.text}_start`)
+                    i.asm.push(`popmi1 0`)
+                    i.asm.push('popsp 0')
+                    
+                    console.log(i)
+                    // while(1){}
+                }
+            }
         }
         return tree
     }
@@ -541,19 +560,16 @@ module (main) begin
 
     func (u){x,y} begin    
         var begin
-            i, j: unsigned
+            i,k: unsigned
         end
-        a = x
-        y = 29
-        i = 27
-        j = 28
+        i = 11
+        a  = x+y+i
     end
 
-    if (a>b) begin 
-        a=b
-    end
+    a = 20
 
-    
+    u(9,2+2)
+
 end
 
 
