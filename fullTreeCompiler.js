@@ -254,6 +254,41 @@ function mathToAsm(tree, context){
 
     }
 
+    
+    else if(tree.children){
+        // call functoin without return value
+        console.log('text:',tree)
+        console.log(tree.children[0].text!=':')
+        if(tree.children[0].text!=':'){
+            tree.asm = [
+            ]
+            console.log(tree);
+            console.log(arrayFromBin(tree.children[0],',').map(i=>mathToAsm(i,context)))
+            // while(1){}
+            for(let k of arrayFromBin(tree.children[0],',').map(i=>mathToAsm(i,context))){
+                tree.asm = [...tree.asm, ...k]
+            }
+
+            tree.asm.push('pushsp 0')
+            tree.asm.push('pushaddr 0 5')
+            tree.asm.push(`call func_${tree.text}_start`)
+            tree.asm.push(`popmi1 0`)
+            tree.asm.push('popsp 0')
+            //todo count args
+            for(let i =0; i< arrayFromBin(tree.children[0],',').length; i++)
+                tree.asm.push('popmi2 0')
+            // tree.asm.push('popmi2 0')
+// 
+            tree.asm.push('pushmi1 0')
+            return(tree.asm)
+
+            // while(1){}
+            
+            // console.log(i)
+            // while(1){}
+        }
+    }
+
 
     else{
         if(context[tree.text])
@@ -381,7 +416,7 @@ function compile(tree){
                 // console.log(i)
                 // console.log(getChildByText(i,'begin'))
                 let bodyRes = []
-                for (let k of compileLogicTree(getChildByText(i,'begin')).children.map(i=>i.asm)){
+                for (let k of compileLogicTree(getChildByText(i,'begin'),localContext,globalContextOffset,funcName).children.map(i=>i.asm)){
                     bodyRes = [...bodyRes, ...k]
                 }
                 console.log(getChildByText(i,'(').children[0])
@@ -469,11 +504,9 @@ function compile(tree){
                 // while((1)){}
             }
             else if (i.text=='func'){
-                // while(1){console.log('func')}
                 let funcName = i.children[0].children[0].text
                 let bodyRes = []
                 printConsoleTree(i)
-                // crashes when function has arguments
                 let bodyChild = getChildByText(i,'begin')
                 let localVarSection = getChildByText(bodyChild,'var')
                 if(bodyChild.children[0].text=='var')
@@ -481,7 +514,7 @@ function compile(tree){
                 console.log('body child:',bodyChild)
                 let localVars = parseVar(localVarSection)
                 console.log('local var:',localVars)
-                // while(1){}
+                localVars.vars  = localVars.vars.map(i=>({...i,negOffset:i.negOffset-2}))
                 let args = arrayFromBin(getChildByText(i,'{').children[0],',')
                 for(let k=args.length-1; k>=0; k--){
                     args[k]={
@@ -536,6 +569,7 @@ function compile(tree){
                 console.log(i)
             }
             else{
+                // call functoin without return value
                 console.log('text:',i)
                 console.log(i.children[0].text!=':')
                 if(i.children[0].text!=':'){
@@ -548,6 +582,7 @@ function compile(tree){
                     i.asm.push('pushaddr 0 5')
                     i.asm.push(`call func_${i.text}_start`)
                     i.asm.push(`popmi1 0`)
+                
                     i.asm.push('popsp 0')
                     
                     console.log(i)
@@ -578,28 +613,51 @@ let code = `
 module (main) begin
     
     var begin
-        a, b: unsigned
+        a, b, c: unsigned
     end
 
-    func (u){x,y,z} begin    
-        var begin
-            i,k: unsigned[4]
-            o:unsigned
-        end
-        $(y)  = x+y+z
-    end
 
 
     func (sum2){x,y} begin    
         var begin
             i,k: unsigned
         end
-        i  = x+y
+        k  = x+y
+        return(k)
     end
 
-    b = 7
-    u(b,@(b),9)
-    u(a,@(a),9)
+    
+    func (sum3){x,y,o} begin    
+        var begin
+            i,k: unsigned
+        end
+        k  = x+y+o
+        return(k)
+    end
+
+    func (fib){x} begin
+        var begin
+            res: unsigned
+        end
+        res = 1
+        if(x>2) begin
+            res = fib(x-1)+fib(x-2)
+        end
+        return (res)
+    end
+
+    func(max){x,y} begin
+        var begin t:unsigned end
+        t = 1
+        if(t>0) begin
+            return(1)
+        end
+        return(t)
+    end
+
+    a = sum2(2,sum2(4,1))
+    b = sum3(3,sum2(4,1),1)
+    c = fib(8)
 
 end
 
