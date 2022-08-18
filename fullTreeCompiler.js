@@ -581,7 +581,6 @@ module (main) begin
         a, b: unsigned
     end
 
-
     func (u){x,y,z} begin    
         var begin
             i,k: unsigned[4]
@@ -600,6 +599,7 @@ module (main) begin
 
     b = 7
     u(b,@(b),9)
+    u(a,@(a),9)
 
 end
 
