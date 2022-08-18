@@ -290,7 +290,7 @@ function compile(tree){
     }
     console.log('gvo',globalVarObj)
     globalVar = globalVarObj
-    function compileLogicTree(tree, localContext, globalContextOffset) {
+    function compileLogicTree(tree, localContext, globalContextOffset,funcName) {
         console.log('tree',tree)
         let availableVars = globalVar
         let availableVarsObj = globalVarObj
@@ -452,6 +452,22 @@ function compile(tree){
                 ]
                 // while(1){}
             }
+            else if(i.text=='return'){
+                console.log(i.children[0])
+                console.log(i)
+                let retResAsm = mathToAsm(i.children[0],availableVarsObj);
+                
+                i.asm=[
+                    '# return '+i.children[0].text,
+                    '   # compute '+i.children[0].text,
+                    ...retResAsm.map(i=>'      '+i),
+                    '   # return is done from mi1',
+                    '      popmi1 0',
+                    `      jmp func_${funcName}_epilog`,
+                    '# end return'
+                ]
+                // while((1)){}
+            }
             else if (i.text=='func'){
                 // while(1){console.log('func')}
                 let funcName = i.children[0].children[0].text
@@ -478,6 +494,7 @@ function compile(tree){
                 args = args.map(i=>({...i, negOffset:i.negOffset+localVars.totalSize})) //TODO: check
                 console.log(args)
                 console.log(localVars)
+                // while(1){}
                 let argsAndLocalVars =[...args, ...localVars.vars]
                 console.log(argsAndLocalVars)
                 // while(1){}
@@ -486,20 +503,27 @@ function compile(tree){
                 // console.log('args:',args)
                 // while(1){}
 
-                for (let k of compileLogicTree(getChildByText(i,'begin'),argsAndLocalVars,argsAndLocalVars[0].negOffset+2).children.map(i=>i.asm)){
-                    console.log('k:',k)
-                    bodyRes = [...bodyRes, ...k]
+                for (let k of 
+                    compileLogicTree(
+                        getChildByText(i,'begin'),
+                        argsAndLocalVars,
+                        argsAndLocalVars[0].negOffset+2,
+                        funcName
+                    ).children.map(i=>i.asm)){
+                        console.log('k:',k)
+                        bodyRes = [...bodyRes, ...k]
                 }
                 i.asm = [
                     `# func ${funcName} begin`,
                     `   jmp func_${funcName}_end`,
                     `   func_${funcName}_start:nop`,
-                    `   malloc 0 2`,// TODO: calc size
+                    `   malloc 0 ${localVars.totalSize}`,// TODO: calc size
                     `   memtosp 0`,
                     `# func body`,
                     ...bodyRes.map(i=> '   '+i),
                     '# func epilog',
-                    `   mfree 0 2`, // TODO: calc size
+                    `   func_${funcName}_epilog:nop`,
+                    `   mfree 0 ${localVars.totalSize}`, // TODO: calc size
                     `   popmi2 0`,
                     `   pushmi1 0`,
                     `   pushmi2 0`,
@@ -558,15 +582,24 @@ module (main) begin
     end
 
 
-    func (u){x,y} begin    
+    func (u){x,y,z} begin    
+        var begin
+            i,k: unsigned[4]
+            o:unsigned
+        end
+        $(y)  = x+y+z
+    end
+
+
+    func (sum2){x,y} begin    
         var begin
             i,k: unsigned
         end
-        $(y)  = x+y
+        i  = x+y
     end
 
-    b = 8
-    u(b,@(b))
+    b = 7
+    u(b,@(b),9)
 
 end
 
@@ -574,7 +607,6 @@ end
 `
 
 printConsoleTree(codeToTree(code))
-// while(1){}
 
 console.log(compile(codeToTree(code)))
 if(args.indexOf('--run')==-1)
@@ -587,6 +619,8 @@ import Device from './index.js'
 
 
 let lc = new LLCompiler()
+console.log(compile(codeToTree(code)))
+// while(1){}
 lc.parse(compile(codeToTree(code)))
 console.log(lc.getProgmemByteString())
 
