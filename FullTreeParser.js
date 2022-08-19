@@ -82,7 +82,7 @@ class FullTreeParser{
         }
     }
     lastLevelOnly(){
-        this.lastLevelTokens = this.leveledTokens.map(i=>({...i, lastLevelType:i.bracketPath.pop()}))
+        this.lastLevelTokens = this.leveledTokens.map(i=>({...i, lastLevelType:i.bracketPath[i.bracketPath.length-1]}))
     }
     levelGroups(){
         let res=[];
@@ -270,17 +270,19 @@ function mathTreeTestedInConsole(arr){
                 arr[center]={
                     text:arr[center].text,
                     computed:true,
+                    lastLevelType:arr[center].lastLevelType,
                     children:[
-                        {text:'left',children:[arr[center-1]]},
-                        {text:'right',children:[arr[center+1]]},
+                        {text:'left',children:[{...arr[center-1],lastLevelType:undefined}]},
+                        {text:'right',children:[{...arr[center+1],lastLevelType:undefined}]},
                     ]
                 }
             else
                 arr[center]={
                     text:arr[center].text,
                     computed:true,
+                    lastLevelType:arr[center].lastLevelType,
                     children:[
-                        {text:'left',children:[arr[center-1]]},
+                        {text:'left',children:[{...arr[center-1],lastLevelType:undefined}]},
                         {text:'right',children:mathTreeTestedInConsole(arr[center].children)},
                     ]
                 }
@@ -305,7 +307,7 @@ export function printConsoleTree(v,level=0){
         start+='|'+(PAD_SYMBOL.repeat(PAD))
     if(level)
     start+='|'+(PAD_SYMBOL_LAST.repeat(PAD))
-    console.log(start+v.text+'  :  ' + v.lastLevelType)
+    console.log(start+v.text+'  :  ' + v.lastLevelType)// + ' ' + JSON.stringify({...v,children:null}))
     for(let i of v?.children??[]){
         printConsoleTree(i, level+1)
     }
@@ -380,9 +382,9 @@ export function codeToTree(code){
     ftp.tokenTypes()
     ftp.computeLevels()
     ftp.lastLevelOnly()
+    console.log(ftp.lastLevelTokens)
     let d = ftp.levelize()[0]
     let ko = groupBy(d,'lastLevelType',true).children[1];
-    
     let testAfterBraces = ko
     
     let oneMore = true;
@@ -406,22 +408,8 @@ printConsoleTree(codeToTree(`
 
     module (main) begin
 
-        x = 1  < = 2
-        $ (2) = 0
-        t = @ (x)
-        
-        if(x) begin
-            y = 0
-            if(x>0) begin
-                t = 0
-            end
-        end
-        func(x){p} begin
-            y = 0
-            if(x>0) begin
-                t = 0
-            end
-        end
+        x[0]= 3
+        x[2+2] = 9
     end
 
 `))

@@ -614,6 +614,7 @@ module (main) begin
     
     var begin
         a, b, c: unsigned
+        ar:unsigned(5)
     end
 
 
@@ -657,18 +658,84 @@ module (main) begin
 
     a = sum2(2,sum2(4,1))
     b = sum3(3,sum2(4,1),1)
-    c = fib(8)
+    c = fib(2)
+
+    ar[0] = 9
+    ar[1]=11
+    ar[2]=1
+    ar[3]=98
+    ar[ar[2]]=ar[3]
 
 end
 
 
 `
 
-printConsoleTree(codeToTree(code))
+
+
+
+
+
+function fixSquareBraces(tree){
+    let text = tree.text
+    tree = tree.children
+
+    if(!tree)
+        return null
+
+    for(let i = 0; i < tree.length; i++){
+        if(tree[i]?.children?.[0]?.lastLevelType=='['){
+            console.log(tree[i])
+            console.log(tree[i]?.children?.[0]?.lastLevelType)
+            tree[i]=fixSquareBraces({
+                text:'$',
+                children:[{
+                    text:'right',
+                    children:[{
+                            text:'+',
+                            children:[
+                                {
+                                    text:'left', 
+                                    children:[
+                                        {
+                                            text:'@',
+                                            children:[
+                                                {
+                                                    text:'right',
+                                                    children:[
+                                                        {
+                                                            text:tree[i].text
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    text:'right',
+                                    children:tree[i].children.map(i=>({...i,lastLevelType:undefined}))
+                                }
+                            ]
+                        }
+                    ]
+                }]
+            })
+        }
+        else if(tree[i].children && tree[i].text!='var'){
+            console.log(tree[i]);
+            // while(1){}
+            tree[i] = fixSquareBraces(tree[i])
+        }
+    }
+    return {children:tree, text}
+}
+
+printConsoleTree(fixSquareBraces(codeToTree(code)))
 
 console.log(compile(codeToTree(code)))
 if(args.indexOf('--run')==-1)
-    while(1){}  
+    while(1){}      
 import LLCompiler from './compiler.js'
 
 
@@ -676,10 +743,33 @@ import Device from './index.js'
 
 
 
+
+
+// const btCode = `
+// module(main) begin
+//     var begin
+//         a, b, c: unsigned
+//         ar:unsigned(5)
+//     end
+
+//     ar[3]
+//     ar[2+ar[7]] = 2
+//     $(@(arr)+r[2]) = 9
+// end
+// `
+
+
+// printConsoleTree(fixSquareBraces((codeToTree(btCode))))
+
+
+
+
+
+
 let lc = new LLCompiler()
-console.log(compile(codeToTree(code)))
+console.log(compile(fixSquareBraces(codeToTree(code))))
 // while(1){}
-lc.parse(compile(codeToTree(code)))
+lc.parse(compile(fixSquareBraces(codeToTree(code))))
 console.log(lc.getProgmemByteString())
 
 let d =new Device()
@@ -701,4 +791,5 @@ function runTicks(count){
 }
 
 if(args.indexOf('--run')!=-1)
-runTicks(50)
+    runTicks(50)
+// printConsoleTree(codeToTree(btCode))
