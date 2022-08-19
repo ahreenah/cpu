@@ -101,8 +101,12 @@ export default class Device{
     get commandCondition(){ return this.progmem[this.cmdAddr]%256 } // bits: lt gt eq
     get arg1(){ return (this.progmem[this.cmdAddr+1])>>0 }
     get arg2(){ return (this.progmem[this.cmdAddr+2])>>0 }
-    get mosum(){ return this.mi1+this.mi2 }
-    get mosub(){ return this.mi1-this.mi2 }
+    get mosum(){ return (this.mi1+this.mi2) % Math.pow(2,32) }
+    get mosub(){ 
+        if(this.mi1>this.mi2)
+            return this.mi1-this.mi2
+        else return Math.pow(2,32)+this.mi1-this.mi2
+    }
     get momul(){ return this.mi1*this.mi2 }
     get mogt(){ return this.mi1>this.mi2}
     get molt(){ return this.mi1<this.mi2}

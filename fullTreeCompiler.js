@@ -40,6 +40,29 @@ function arrayFromBin(tree,sign){
     return [...leftChild, ...rightChild] 
 }
 
+function decToBinUs(v,length){//->string
+    let res =''
+    while(v>0){
+        res=(v%2?'1':'0')+res
+        v>>=1
+    }
+    while(res.length<length){
+        res='0'+res
+    }
+    return res
+}
+//4294967286
+
+function decToBinS(v,length){//->int for decToBinUs()
+    if(v>=0)
+        return v
+    return v+Math.pow(2,length)
+}
+
+function display32(num){
+    console.log(decToBinUs(decToBinS(num,31),31))   
+}
+
 function parseVar(tree){
     let res = []
     for(let i of tree.children){
@@ -613,8 +636,8 @@ let code = `
 module (main) begin
     
     var begin
-        a, b: unsigned
-        ar:unsigned(10)
+        a, b, c: int
+        ar:int(10)
     end
 
 
@@ -676,18 +699,20 @@ module (main) begin
     end
 
     a = @(ar)
-    a[0] = 7
+    a[0] = 765
     a[1] = 2
-    a[2] = 3
-    a[3] = 9
+    a[2] = 1024
+    a[3] = 756
     a[4] = 0
     a[5] = 27
     a[6] = 148
     a[7] = 14
-    a[8] = 2
-    a[9] = 19
-    b = max(a[2],a[5])
-    sort(a,9)
+    a[8] = 3 - 5
+    a[9] = a[8] + 2
+    b = 2 - 5
+    c = b + 4
+    a = c - b
+    
 end
 
 
