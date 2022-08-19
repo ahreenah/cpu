@@ -453,7 +453,7 @@ function compile(tree){
                 // console.log(i)
                 // console.log(getChildByText(i,'begin'))
                 let bodyRes = []
-                for (let k of compileLogicTree(getChildByText(i,'begin')).children.map(i=>i.asm)){
+                for (let k of compileLogicTree(getChildByText(i,'begin'),localContext,globalContextOffset,funcName).children.map(i=>i.asm)){
                     bodyRes = [...bodyRes, ...k]
                 }
                 console.log(getChildByText(i,'(').children[0])
@@ -613,8 +613,8 @@ let code = `
 module (main) begin
     
     var begin
-        a, b, c: unsigned
-        ar:unsigned(5)
+        a, b: unsigned
+        ar:unsigned(10)
     end
 
 
@@ -649,23 +649,45 @@ module (main) begin
 
     func(max){x,y} begin
         var begin t:unsigned end
-        t = 1
-        if(t>0) begin
-            return(1)
+        t = x
+        if(y>x) begin
+            return(y)
         end
         return(t)
     end
 
-    a = sum2(2,sum2(4,1))
-    b = sum3(3,sum2(4,1),1)
-    c = fib(2)
+    func (sort) {array, size} begin
+        var begin
+            i, j, t:unsigned
+        end
+        j = 0
+        while(j<size) begin
+            i = 0
+            while(i<size) begin
+                if(array[i]>array[i+1]) begin
+                    t = array[i]
+                    array[i] = array[i+1]
+                    array[i+1] = t
+                end
+                i = i+1
+            end
+            j = j+1
+        end
+    end
 
-    ar[0] = 9
-    ar[1]=11
-    ar[2]=1
-    ar[3]=98
-    ar[ar[2]]=ar[3]
-
+    a = @(ar)
+    a[0] = 7
+    a[1] = 2
+    a[2] = 3
+    a[3] = 9
+    a[4] = 0
+    a[5] = 27
+    a[6] = 148
+    a[7] = 14
+    a[8] = 2
+    a[9] = 19
+    b = max(a[2],a[5])
+    sort(a,9)
 end
 
 
@@ -698,17 +720,17 @@ function fixSquareBraces(tree){
                                     text:'left', 
                                     children:[
                                         {
-                                            text:'@',
-                                            children:[
-                                                {
-                                                    text:'right',
-                                                    children:[
-                                                        {
+                                            // text:'@',
+                                            // children:[
+                                            //     {
+                                            //         text:'right',
+                                            //         children:[
+                                            //             {
                                                             text:tree[i].text
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                            //             }
+                                            //         ]
+                                            //     }
+                                            // ]
                                         }
                                     ]
                                 },
