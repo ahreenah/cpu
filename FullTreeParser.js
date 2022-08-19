@@ -378,11 +378,11 @@ export function codeToTree(code){
     let ftp = new FullTreeParser(code)
 
     ftp.tokenize()
-    console.log(ftp.tokens)
+    // console.log(ftp.tokens)
     ftp.tokenTypes()
     ftp.computeLevels()
     ftp.lastLevelOnly()
-    console.log(ftp.lastLevelTokens)
+    // console.log(ftp.lastLevelTokens)
     let d = ftp.levelize()[0]
     let ko = groupBy(d,'lastLevelType',true).children[1];
     let testAfterBraces = ko

@@ -631,6 +631,10 @@ function compile(tree){
     
     
 }
+
+
+// scope error when functoin is called as procedure inside function
+
 let code = `
 
 module (main) begin
@@ -681,7 +685,7 @@ module (main) begin
 
     func (sort) {array, size} begin
         var begin
-            i, j, t:unsigned
+            i, j, t:int
         end
         j = 0
         while(j<size) begin
@@ -698,21 +702,44 @@ module (main) begin
         end
     end
 
+    func (quicksort){arr,a,b} begin        
+        var begin
+            ind1, ind2, op, t: unsigned
+        end
+        ind1 = a
+        ind2 = b
+        op  = arr[ind1]
+
+        while (ind1<ind2) begin
+            while (arr[ind1]<op) begin
+                ind1 = ind1 + 1
+            end
+            while (arr[ind2]>op) begin
+                ind2 = ind2 - 1
+            end
+            t = arr[ind1]
+            arr[ind1] = arr[ind2]
+            arr[ind2] = t
+        end
+        
+        return(0)
+    end
+
     a = @(ar)
     a[0] = 765
     a[1] = 2
     a[2] = 1024
-    a[3] = 756
-    a[4] = 0
+    a[3] = 759
+    a[4] = 1
     a[5] = 27
     a[6] = 148
     a[7] = 14
-    a[8] = 3 - 5
-    a[9] = a[8] + 2
-    b = 2 - 5
-    c = b + 4
-    a = c - b
-    
+    a[8] = 5
+    a[9] = a[8] - 2
+    b = sort(a,8)
+    b = sort(a,8)
+    b = sort(a,8)
+    b = 0
 end
 
 
@@ -732,8 +759,8 @@ function fixSquareBraces(tree){
 
     for(let i = 0; i < tree.length; i++){
         if(tree[i]?.children?.[0]?.lastLevelType=='['){
-            console.log(tree[i])
-            console.log(tree[i]?.children?.[0]?.lastLevelType)
+            // console.log(tree[i])
+            // console.log(tree[i]?.children?.[0]?.lastLevelType)
             tree[i]=fixSquareBraces({
                 text:'$',
                 children:[{
@@ -809,7 +836,31 @@ import Device from './index.js'
 // printConsoleTree(fixSquareBraces((codeToTree(btCode))))
 
 
+/*
 
+
+        while (ind1<ind2) begin
+            while (arr[ind1]<op) begin
+                ind1 = ind1 +
+            end
+            while (arr[ind2]>op) begin
+                ind2 = ind2 - 1
+            end
+            t = arr[ind1]
+            arr[ind1] = arr[ind2]
+            arr[ind1] = t
+        end
+
+        if(ind1>a) begin
+            t = quicksort(arr,a,ind1-1)
+        end
+        
+        if(ind2<b) begin
+            t = quicksort(arr,ind1+1,b)
+        end
+
+
+*/
 
 
 
@@ -822,6 +873,7 @@ console.log(lc.getProgmemByteString())
 let d =new Device()
 d.progmem=eval(lc.getProgmemByteString())
 
+let tick = 0;
 function runTicks(count){
     // for(let i=0; i<count; i++){
         while(d.cmdAddr<d.progmem.length+5){
@@ -829,10 +881,11 @@ function runTicks(count){
             // console.log('mem:', d.datamem)
             
             console.log('mi1: ', d.mi1)
-            console.log('mi2: ',d.mi2)
-            console.log('mem:', d.datamem)
-            console.log('sp:', d.sp)
-            console.log('ra:', d.ra)
+            console.log('tick::',tick++,'\n')
+            // console.log('mi2: ',d.mi2)
+            // console.log('mem:', d.datamem)
+            // console.log('sp:', d.sp)
+            // console.log('ra:', d.ra)
         }
     // }
 }
@@ -840,3 +893,7 @@ function runTicks(count){
 if(args.indexOf('--run')!=-1)
     runTicks(50)
 // printConsoleTree(codeToTree(btCode))
+            console.log('mi2: ',d.mi2)
+            console.log('mem:', d.datamem)
+            console.log('sp:', d.sp)
+            console.log('ra:', d.ra)
