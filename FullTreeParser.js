@@ -31,6 +31,7 @@ class FullTreeParser{
     typedTokens=[]
     constructor(code){
         let lines = code.split('\n');
+        lines = lines.map(i=>i.split('#')[0].trim())
         this.fullStr = lines.join(' ')
     }
     tokenize(){       

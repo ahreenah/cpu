@@ -19,16 +19,16 @@ function getChildByText(tree, text){
 }
 
 function arrayFromBin(tree,sign){
-    console.log('called arrayfromtree for',tree)
+    // console.log('called arrayfromtree for',tree)
     if(tree.text!=sign){
-        console.log('found end element for ',sign)
-        console.log(tree)
+        // console.log('found end element for ',sign)
+        // console.log(tree)
         return [tree]
     }
     let leftChild =  getChildByText(tree,'left').children[0]
     let rightChild = getChildByText(tree,'right').children[0]
-    console.log('l:',leftChild)
-    console.log('r',rightChild)
+    // console.log('l:',leftChild)
+    // console.log('r',rightChild)
     if(leftChild.text==sign)
         leftChild = arrayFromBin(leftChild,',')
     else
@@ -256,8 +256,8 @@ function mathToAsm(tree, context){
     else if (tree.text=='@'){
         let right = getChildByText(tree,'right').children[0]
         let varName = right.text
-        console.log(context[varName].negOffset)
-        console.log(right)
+        // console.log(context[varName].negOffset)
+        // console.log(right)
 
         // while(1){}
         return [
@@ -277,16 +277,17 @@ function mathToAsm(tree, context){
 
     }
 
+
     
     else if(tree.children){
         // call functoin without return value
-        console.log('text:',tree)
-        console.log(tree.children[0].text!=':')
+        // console.log('text:',tree)
+        // console.log(tree.children[0].text!=':')
         if(tree.children[0].text!=':'){
             tree.asm = [
             ]
-            console.log(tree);
-            console.log(arrayFromBin(tree.children[0],',').map(i=>mathToAsm(i,context)))
+            // console.log(tree);
+            // console.log(arrayFromBin(tree.children[0],',').map(i=>mathToAsm(i,context)))
             // while(1){}
             for(let k of arrayFromBin(tree.children[0],',').map(i=>mathToAsm(i,context))){
                 tree.asm = [...tree.asm, ...k]
@@ -331,33 +332,33 @@ function parseAssign(tree, context){
     // printConsoleTree(tree)
     let rightItem = getChildByText(tree,'right');
     let leftItem = getChildByText(tree,'left');
-    printConsoleTree(leftItem)
-    printConsoleTree(rightItem)
+    // printConsoleTree(leftItem)
+    // printConsoleTree(rightItem)
     return(mathToAsm(rightItem.children[0], context))
 }
 
 function compile(tree){
-    console.log('got', tree)
+    // console.log('got', tree)
     let globalVar = getChildByText(tree,'var')
     let parsedVar = parseVar(globalVar);
-    console.log('s:',JSON.stringify(parsedVar))
+    // console.log('s:',JSON.stringify(parsedVar))
     let globalVarObj = {}
-    console.log('gv',globalVarObj)
+    // console.log('gv',globalVarObj)
     for (let i of parsedVar.vars){
         globalVarObj[i.name] = i
     }
-    console.log('gvo',globalVarObj)
+    // console.log('gvo',globalVarObj)
     globalVar = globalVarObj
     function compileLogicTree(tree, localContext, globalContextOffset,funcName) {
-        console.log('tree',tree)
+        // console.log('tree',tree)
         let availableVars = globalVar
         let availableVarsObj = globalVarObj
         if(globalContextOffset){
-            console.log('-------------------')
-            console.log(localContext)
-            console.log(globalContextOffset)
+            // console.log('-------------------')
+            // console.log(localContext)
+            // console.log(globalContextOffset)
             let globalContextArr = Object.keys(globalVarObj).map(i=>globalVarObj[i])
-            console.log()
+            // console.log()
             let totalVars = [...globalContextArr.map(i=>({
                 name:i.name,
                 size:i.size,
@@ -366,10 +367,10 @@ function compile(tree){
                 ...i, 
                 negOffset:i.negOffset+2
             }))]
-            console.log('=======================')
-            console.log(globalVar)
-            console.log(globalVarObj)
-            console.log(totalVars)
+            // console.log('=======================')
+            // console.log(globalVar)
+            // console.log(globalVarObj)
+            // console.log(totalVars)
             availableVars = totalVars
             availableVarsObj = {}
             for(let k of availableVars) 
@@ -387,8 +388,8 @@ function compile(tree){
                     isPointer = true;
                     leftName = 'XX'
                     // console.log(leftChild)
-                    console.log(getChildByText(leftChild,'right').children[0]);
-                    console.log('$ right asm',mathToAsm(getChildByText(leftChild,'right').children[0],availableVarsObj))
+                    // console.log(getChildByText(leftChild,'right').children[0]);
+                    // console.log('$ right asm',mathToAsm(getChildByText(leftChild,'right').children[0],availableVarsObj))
                     leftAsm = [
                         // push right value
                         'pushmi1 0',
@@ -414,20 +415,20 @@ function compile(tree){
                     ...leftAsm
                     // `mi1tomemspnegoffset ${isPointer?'xx':globalVar[leftName].negOffset-1}`
                 ]
-                console.log(i.asm)
+                // console.log(i.asm)
                 // console.log(globalVar[leftName],i.children[0])
             }
             else if(i.text=='var'){
-                console.log(i)
+                // console.log(i)
                 let parsedVar = parseVar(i);
-                console.log('s:',JSON.stringify(parsedVar))
+                // console.log('s:',JSON.stringify(parsedVar))
                 let globalVarObj = {}
-                console.log('gv',globalVarObj)
-                console.log('gv',globalVarObj)
+                // console.log('gv',globalVarObj)
+                // console.log('gv',globalVarObj)
                 for (let i of parsedVar.vars){
                     globalVarObj[i.name] = i
                 }
-                console.log('gvo',globalVarObj)
+                // console.log('gvo',globalVarObj)
                 // while(1){}
                 i.asm=[
                     `malloc 0 ${globalVarObj[Object.keys(globalVarObj)[0]].negOffset}`,
@@ -435,25 +436,25 @@ function compile(tree){
                 ]
             }
             else if(i.text=='if'){
-                console.log(i)
+                // console.log(i)
                 // console.log(i)
                 // console.log(getChildByText(i,'begin'))
                 let bodyRes = []
                 for (let k of compileLogicTree(getChildByText(i,'begin'),localContext,globalContextOffset,funcName).children.map(i=>i.asm)){
                     bodyRes = [...bodyRes, ...k]
                 }
-                console.log(getChildByText(i,'(').children[0])
+                // console.log(getChildByText(i,'(').children[0])
                 let condAsm  =mathToAsm(getChildByText(i,'(').children[0],availableVarsObj);
-                console.log('mta',condAsm)
+                // console.log('mta',condAsm)
                 // while(1){}
                 let condRes = []
                 for (let k of condAsm ){
-                    console.log(k)
+                    // console.log(k)
                     condRes = [...condRes, k]
                 }
 
                 let ifId = generateUID()
-                console.log(bodyRes)
+                // console.log(bodyRes)
                 
                 i.asm = [
                     '# if begin',
@@ -472,25 +473,25 @@ function compile(tree){
                 // while(1){}
             }
             else if(i.text=='while'){
-                console.log(i)
+                // console.log(i)
                 // console.log(i)
                 // console.log(getChildByText(i,'begin'))
                 let bodyRes = []
                 for (let k of compileLogicTree(getChildByText(i,'begin'),localContext,globalContextOffset,funcName).children.map(i=>i.asm)){
                     bodyRes = [...bodyRes, ...k]
                 }
-                console.log(getChildByText(i,'(').children[0])
+                // console.log(getChildByText(i,'(').children[0])
                 let condAsm  =mathToAsm(getChildByText(i,'(').children[0],availableVarsObj);
-                console.log('mta',condAsm)
+                // console.log('mta',cossndAsm)
                 // while(1){}
                 let condRes = []
                 for (let k of condAsm ){
-                    console.log(k)
+                    // console.log(k)
                     condRes = [...condRes, k]
                 }
 
                 let whileId = generateUID()
-                console.log(bodyRes)
+                // console.log(bodyRes)
                 
                 i.asm = [
                     '# while begin',
@@ -511,8 +512,8 @@ function compile(tree){
                 // while(1){}
             }
             else if(i.text=='return'){
-                console.log(i.children[0])
-                console.log(i)
+                // console.log(i.children[0])
+                // console.log(i)
                 let retResAsm = mathToAsm(i.children[0],availableVarsObj);
                 
                 i.asm=[
@@ -526,17 +527,30 @@ function compile(tree){
                 ]
                 // while((1)){}
             }
+            else if (i.text=='print'){
+                let printResAsm = mathToAsm(i.children[0],availableVarsObj);
+                i.asm=[
+                    
+                    '# print '+i.children[0].text,
+                    '   # compute '+i.children[0].text,
+                    ...printResAsm.map(i=>'      '+i),
+                    '   # print is done from mi1',
+                    '      popmi1 0',
+                    `      print`,
+                    '# end return'
+                ]
+            }
             else if (i.text=='func'){
                 let funcName = i.children[0].children[0].text
                 let bodyRes = []
-                printConsoleTree(i)
+                // printConsoleTree(i)
                 let bodyChild = getChildByText(i,'begin')
                 let localVarSection = getChildByText(bodyChild,'var')
                 if(bodyChild.children[0].text=='var')
                     bodyChild.children = bodyChild.children.splice(1)
-                console.log('body child:',bodyChild)
+                // console.log('body child:',bodyChild)
                 let localVars = parseVar(localVarSection)
-                console.log('local var:',localVars)
+                // console.log('local var:',localVars)
                 localVars.vars  = localVars.vars.map(i=>({...i,negOffset:i.negOffset-2}))
                 let args = arrayFromBin(getChildByText(i,'{').children[0],',')
                 for(let k=args.length-1; k>=0; k--){
@@ -546,13 +560,13 @@ function compile(tree){
                         negOffset:args.length-k
                     }
                 }
-                console.log(getChildByText(i,'begin'))
+                // console.log(getChildByText(i,'begin'))
                 args = args.map(i=>({...i, negOffset:i.negOffset+localVars.totalSize})) //TODO: check
-                console.log(args)
-                console.log(localVars)
+                // console.log(args)
+                // console.log(localVars)
                 // while(1){}
                 let argsAndLocalVars =[...args, ...localVars.vars]
-                console.log(argsAndLocalVars)
+                // console.log(argsAndLocalVars)
                 // while(1){}
 
                 // vars = vars.map()
@@ -566,7 +580,7 @@ function compile(tree){
                         argsAndLocalVars[0].negOffset+2,
                         funcName
                     ).children.map(i=>i.asm)){
-                        console.log('k:',k)
+                        // console.log('k:',k)
                         bodyRes = [...bodyRes, ...k]
                 }
                 i.asm = [
@@ -587,14 +601,14 @@ function compile(tree){
                     `   func_${funcName}_end:nop`,
                     '# func end'
                 ]
-                console.log('function build was successful')
+                // console.log('function build was successful')
                 // while(1){}
-                console.log(i)
+                // console.log(i)
             }
             else{
                 // call functoin without return value
-                console.log('text:',i)
-                console.log(i.children[0].text!=':')
+                // console.log('text:',i)
+                // console.log(i.children[0].text!=':')
                 if(i.children[0].text!=':'){
                     i.asm = [
                     ]
@@ -608,7 +622,7 @@ function compile(tree){
                 
                     i.asm.push('popsp 0')
                     
-                    console.log(i)
+                    // console.log(i)
                     // while(1){}
                 }
             }
@@ -644,102 +658,11 @@ module (main) begin
         ar:int(10)
     end
 
-
-
-    func (sum2){x,y} begin    
-        var begin
-            i,k: unsigned
-        end
-        k  = x+y
-        return(k)
+    b = 1
+    while (b<10) begin
+        print(b*2)
+        b= b+1
     end
-
-    
-    func (sum3){x,y,o} begin    
-        var begin
-            i,k: unsigned
-        end
-        k  = x+y+o
-        return(k)
-    end
-
-    func (fib){x} begin
-        var begin
-            res: unsigned
-        end
-        res = 1
-        if(x>2) begin
-            res = fib(x-1)+fib(x-2)
-        end
-        return (res)
-    end
-
-    func(max){x,y} begin
-        var begin t:unsigned end
-        t = x
-        if(y>x) begin
-            return(y)
-        end
-        return(t)
-    end
-
-    func (sort) {array, size} begin
-        var begin
-            i, j, t:int
-        end
-        j = 0
-        while(j<size) begin
-            i = 0
-            while(i<size) begin
-                if(array[i]>array[i+1]) begin
-                    t = array[i]
-                    array[i] = array[i+1]
-                    array[i+1] = t
-                end
-                i = i+1
-            end
-            j = j+1
-        end
-    end
-
-    func (quicksort){arr,a,b} begin        
-        var begin
-            ind1, ind2, op, t: unsigned
-        end
-        ind1 = a
-        ind2 = b
-        op  = arr[ind1]
-
-        while (ind1<ind2) begin
-            while (arr[ind1]<op) begin
-                ind1 = ind1 + 1
-            end
-            while (arr[ind2]>op) begin
-                ind2 = ind2 - 1
-            end
-            t = arr[ind1]
-            arr[ind1] = arr[ind2]
-            arr[ind2] = t
-        end
-        
-        return(0)
-    end
-
-    a = @(ar)
-    a[0] = 765
-    a[1] = 2
-    a[2] = 1024
-    a[3] = 759
-    a[4] = 1
-    a[5] = 27
-    a[6] = 148
-    a[7] = 14
-    a[8] = 5
-    a[9] = a[8] - 2
-    b = sort(a,8)
-    b = sort(a,8)
-    b = sort(a,8)
-    b = 0
 end
 
 
@@ -797,7 +720,7 @@ function fixSquareBraces(tree){
             })
         }
         else if(tree[i].children && tree[i].text!='var'){
-            console.log(tree[i]);
+            // console.log(tree[i]);
             // while(1){}
             tree[i] = fixSquareBraces(tree[i])
         }
@@ -805,7 +728,7 @@ function fixSquareBraces(tree){
     return {children:tree, text}
 }
 
-printConsoleTree(fixSquareBraces(codeToTree(code)))
+// printConsoleTree(fixSquareBraces(codeToTree(code)))
 
 console.log(compile(codeToTree(code)))
 if(args.indexOf('--run')==-1)
@@ -865,10 +788,10 @@ import Device from './index.js'
 
 
 let lc = new LLCompiler()
-console.log(compile(fixSquareBraces(codeToTree(code))))
+// console.log(compile(fixSquareBraces(codeToTree(code))))
 // while(1){}
 lc.parse(compile(fixSquareBraces(codeToTree(code))))
-console.log(lc.getProgmemByteString())
+// console.log(lc.getProgmemByteString())
 
 let d =new Device()
 d.progmem=eval(lc.getProgmemByteString())
@@ -878,10 +801,12 @@ function runTicks(count){
     // for(let i=0; i<count; i++){
         while(d.cmdAddr<d.progmem.length+5){
             d.tick();
+            // console.log(d.cmdAddr)
             // console.log('mem:', d.datamem)
             
-            console.log('mi1: ', d.mi1)
-            console.log('tick::',tick++,'\n')
+            // console.log('mi1: ', d.mi1)
+            // console.log('tick::',tick++,'\n')
+
             // console.log('mi2: ',d.mi2)
             // console.log('mem:', d.datamem)
             // console.log('sp:', d.sp)
