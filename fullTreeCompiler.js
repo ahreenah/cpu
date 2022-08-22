@@ -283,7 +283,7 @@ function mathToAsm(tree, context){
         console.log(tree.children[0])
         // console.log(getChildByText(tree,'right'))
         let right = tree.children[0]
-        let symbol = right.text
+        let symbol = right.children[0].text
         // console.log(context[varName].negOffset)
         // console.log(right)
 
@@ -710,21 +710,19 @@ module (main) begin
     printc(10)
     printc(10)
 
-    c = @(ar)
-    c[0]='(H)
-    c[1]='(e)
-    c[3]='(l)
-    c[4]='(l)
-    c[5]='(o)
-    c[6]=32
-    c[7]='(S)
-    c[8]='(t)
-    c[9]='(r)
-    c[10]='(i)
-    c[11]='(n)
-    c[12]='(g)
-    c[13]='(s)
-    c[14]='(!)
+    c = @ar
+    c[0] = 'H
+    c[1] = 'e-4
+    c[3] = 'l
+    c[4] = 'l
+    c[5] = 'o
+    c[6] = 32
+    c[7] = 'w
+    c[8] = 'o
+    c[9] = 'r
+    c[10] = 'l
+    c[11] = 'd
+    c[12] = 33
 
 
     prints(c,15)

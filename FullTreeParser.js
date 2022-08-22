@@ -237,7 +237,7 @@ function multiplyNest(d){
 }
 
 function mathTreeTestedInConsole(arr){
-    for(let signs of[['@'],['$']]){
+    for(let signs of[['@'],['$'],['!'],['\'']]){
         let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
         let hasChildren = arr[center]?.children?.length
         if(center!=-1){
@@ -408,10 +408,10 @@ export function codeToTree(code){
 printConsoleTree(codeToTree(`
 
     module (main) begin
-
+    
         x[0]= 3
         x[2+2] = 9
-        s = '(a)
+        ! tcdss = 'a
     end
 
 `))
