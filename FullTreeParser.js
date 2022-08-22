@@ -7,6 +7,7 @@ It computed operation order and does the decomposition to simple actions
 
 
 const TOKEN_TYPES =  {
+    STR:['\"'],
     SIGN : ['+','-','*','/','>','<','==','!=',':',',','=',],
     KEYWORD : ['if','while','else','func','var', 'return'],
     BRACKET:  ['[',']','{','}','(',')','begin','end',],
@@ -34,20 +35,81 @@ class FullTreeParser{
         lines = lines.map(i=>i.split('#')[0].trim())
         this.fullStr = lines.join(' ')
     }
-    tokenize(){       
-        for(let i of [...TOKEN_TYPES.SIGN, ...TOKEN_TYPES.BRACKET,...TOKEN_TYPES.SEPARATOR, ...TOKEN_TYPES.UNARY_OPERATOR])
-            this.fullStr = this.fullStr.replaceAll(i,' '+i+' ')
-        this.fullStr = this.fullStr.replaceAll(/ +/g,' ')
-        this.tokens=this.fullStr.split(' ').filter(i=>i)
-        for(let i = 0; i<this.tokens.length; i++){
-            for(let k of ['!','>','<','='])
-                if((this.tokens[i]==k) && (this.tokens[i+1]=='=')){
-                    this.tokens[i]=k+'='
-                    this.tokens[i+1]=''
-                }
+    tokenize(){
+        let stringsAndNotStrings = this.fullStr.split('"')
+        console.log(stringsAndNotStrings)
+        // let tokenizeOne=()=>{
+        //     for(let i of [...TOKEN_TYPES.STR,...TOKEN_TYPES.SIGN, ...TOKEN_TYPES.BRACKET,...TOKEN_TYPES.SEPARATOR, ...TOKEN_TYPES.UNARY_OPERATOR])
+        //         this.fullStr = this.fullStr.replaceAll(i,' '+i+' ')
+        //     this.fullStr = this.fullStr.replaceAll(/ +/g,' ')
+        //     this.tokens=this.fullStr.split(' ').filter(i=>i)
+        //     for(let i = 0; i<this.tokens.length; i++){
+        //         for(let k of ['!','>','<','='])
+        //             if((this.tokens[i]==k) && (this.tokens[i+1]=='=')){
+        //                 this.tokens[i]=k+'='
+        //                 this.tokens[i+1]=''
+        //             }
+        //     }
+        //     this.tokens = this.tokens.filter(i=>i)
+        // }
+        let tokenizeOne=(s)=>{
+            for(let i of [...TOKEN_TYPES.STR,...TOKEN_TYPES.SIGN, ...TOKEN_TYPES.BRACKET,...TOKEN_TYPES.SEPARATOR, ...TOKEN_TYPES.UNARY_OPERATOR])
+                s = s.replaceAll(i,' '+i+' ')
+            s = s.replaceAll(/ +/g,' ')
+            let tokens=s.split(' ').filter(i=>i)
+            for(let i = 0; i<tokens.length; i++){
+                for(let k of ['!','>','<','='])
+                    if((tokens[i]==k) && (tokens[i+1]=='=')){
+                        tokens[i]=k+'='
+                        tokens[i+1]=''
+                    }
+            }
+            tokens = tokens.filter(i=>i)
+            return tokens
         }
-        this.tokens = this.tokens.filter(i=>i)
+        let res = []
+        for(let i = 0; i<stringsAndNotStrings.length; i++){
+            if(i%2==0){
+                let tokensOne = tokenizeOne(stringsAndNotStrings[i])
+                for(let token of tokensOne)
+                    res.push(token)
+            }else{
+                res.push('"'+stringsAndNotStrings[i]+'"')
+            }
+        }
+        console.log(res);
+        this.tokens = res;
+
+        // tokenizeOne();
+        // console.log(this.tokens)
+        // while(1){}       
+        // this.findStrs()
     }
+    // findStrs(){
+    //     let isInStr = false
+    //     let lastToken = ''
+    //     let res = []
+    //     for(let i of this.tokens){
+    //         if(!isInStr){
+    //             if(i=='"'){
+    //                 isInStr = true;
+    //                 lastToken=''
+    //                 continue
+    //             }
+    //             res.push(i)
+    //         }else{
+    //             if(i=='"'){
+    //                 isInStr = false;
+    //                 res.push('"'+lastToken.substr(0,lastToken.length-1)+'"')
+    //                 console.log('end str:'+lastToken)
+    //                 continue
+    //             }
+    //             lastToken+=i+' '
+    //         }
+    //     }
+    //     console.log(res)
+    //     this.tokens = res;
+    // }
     tokenTypes(){ 
         function detectTokenType(token){ 
             for(let type in TOKEN_TYPES ){
@@ -379,7 +441,8 @@ export function codeToTree(code){
     let ftp = new FullTreeParser(code)
 
     ftp.tokenize()
-    // console.log(ftp.tokens)
+    console.log(ftp.tokens)
+
     ftp.tokenTypes()
     ftp.computeLevels()
     ftp.lastLevelOnly()
@@ -408,10 +471,13 @@ export function codeToTree(code){
 printConsoleTree(codeToTree(`
 
     module (main) begin
-    
+
         x[0]= 3
         x[2+2] = 9
         ! tcdss = 'a
+
+        fills(c,Hello^_sworld)
+        s = "Hello    world!"
     end
 
 `))

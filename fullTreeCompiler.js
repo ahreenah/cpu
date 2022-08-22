@@ -637,6 +637,40 @@ function compile(tree){
                 // while(1){}
                 // console.log(i)
             }
+            else if (i.text=='fills'){
+                console.log('fills')
+                let text = i.children[0].children[1].children[0].text;
+                console.log(text.substr(1,text.length-2));
+                // console.log(arrayFromBin(tree.children[1],','))
+                let str = text.substr(1,text.length-2)
+                // let replace={
+                //     '_':' ',
+                //     'n':'\n'
+                // }
+                // for(let a in replace)
+                //     str = str.replaceAll('^'+a,replace[a])
+                console.log(str)
+                let codes = []
+                for(let i = 0; i<str.length; i++)
+                    codes.push(str.charCodeAt(i))
+                console.log(codes)
+                // while(1){}
+                let varName = availableVarsObj[i.children[0].children[0].children[0].text]
+                console.log(varName)
+                i.asm=[]
+                for(let j = 0; j<codes.length; j++){
+                    i.asm.push(`ctomi1 ${codes[j]}`)
+                    i.asm.push(`pushmi1 0`)
+                    i.asm.push(`popmi1 0`)
+                    i.asm.push(`mi1tomemspnegoffset ${varName.negOffset-1-j}`)
+                }
+                i.asm.push(`ctomi1 0`)
+                i.asm.push(`pushmi1 0`)
+                i.asm.push(`popmi1 0`)
+                i.asm.push(`mi1tomemspnegoffset ${varName.negOffset-1-codes.length}`)
+                console.log(i.asm)
+                // while(1){}
+            }
             else{
                 // call functoin without return value
                 // console.log('text:',i)
@@ -686,17 +720,23 @@ let code = `
 module (main) begin
     
     var begin
-        a, b, c: int
-        ar:int(15)
+        a, b, c,d,e: int
+        ar:int(150)
+        br:int(150)
     end
-    func(prints){s,l} begin
+    func(prints){s} begin
         var begin
             num:int
         end
         num = 0
-        while(num<l) begin
-            printc(s[num])
-            num = num+1
+        while(num<256) begin
+            if(s[num]==0) begin
+                num = 256
+            end
+            if(s[num]>0) begin
+                printc(s[num])
+                num = num+1
+            end
         end
     end
     
@@ -711,23 +751,13 @@ module (main) begin
     printc(10)
 
     c = @ar
-    c[0] = 'H
-    c[1] = 'e-4
-    c[3] = 'l
-    c[4] = 'l
-    c[5] = 'o
-    c[6] = 32
-    c[7] = 'w
-    c[8] = 'o
-    c[9] = 'r
-    c[10] = 'l
-    c[11] = 'd
-    c[12] = 33
+    b = @br
 
-
-    prints(c,15)
-    
+    fills(ar,"Hello world 22")
+    fills(br,"Normal string test)   )")
+    a = prints(c)
     printc(10)
+    a = prints(b)
     printc(10)
 end
 
