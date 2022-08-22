@@ -12,7 +12,7 @@ const TOKEN_TYPES =  {
     KEYWORD : ['if','while','else','func','var', 'return'],
     BRACKET:  ['[',']','{','}','(',')','begin','end',],
     SEPARATOR:[',',';',],
-    UNARY_OPERATOR:['@','$','!','\'']
+    UNARY_OPERATOR:['@','$','!','\'','return']
 }
 
 class Node{
@@ -436,6 +436,41 @@ function setByPath(obj,path,data){
 
 
 
+function fixUnaryOperators(tree){
+    let text = tree.text
+    tree = tree.children
+    // console.log('here 1'); while(1){}
+    if(!tree)
+        return null
+
+    for(let i = 0; i < tree.length; i++){
+        if(tree[i]?.text=='return'){
+            // console.log(tree[i])
+            // console.log(tree[i]?.children?.[0]?.lastLevelType)
+            console.log('found return')
+            // while(1){}
+            if(!tree[i].children){
+                tree[i]={
+                    text:'return',
+                    children:[
+                            tree[i+1]
+                    ]
+                }
+                tree[i+1] = null
+            }
+        }
+        else if(tree[i]?.children && tree[i]?.text!='var'){
+            // console.log(tree[i]);
+            // while(1){}
+            tree[i] = fixUnaryOperators(tree[i])
+        }
+    }
+    tree = tree.filter(i=>i)
+    console.log(tree)
+    return {children:tree, text}
+}
+
+
 export function codeToTree(code){
 
     let ftp = new FullTreeParser(code)
@@ -452,10 +487,11 @@ export function codeToTree(code){
     let testAfterBraces = ko
     
     let oneMore = true;
-    
+
     let was = null
+    ko = fixUnaryOperators(ko)
     while(true){
-    
+        console.log('in ctt')
         let addr = findNotParsedMath(ko)
         
         if(addr){
@@ -465,6 +501,7 @@ export function codeToTree(code){
         else{
             break
         }
+        
     }
     return ko
 }//($(&arr+i))>$(&arr+j)
@@ -478,6 +515,9 @@ printConsoleTree(codeToTree(`
 
         fills(c,Hello^_sworld)
         s = "Hello    world!"
+        print(8)
+        return (9)
+        return 9
     end
 
 `))

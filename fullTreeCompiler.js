@@ -739,6 +739,16 @@ module (main) begin
             end
         end
     end
+    func(strlen){s} begin
+        var begin
+            i:int
+        end
+        i = 1
+        while(s[i]>0)begin
+            i = i+1
+        end
+        return i
+    end
     
     printc(10)
     b = 1
@@ -753,11 +763,16 @@ module (main) begin
     c = @ar
     b = @br
 
-    fills(ar,"Hello world 22")
-    fills(br,"Normal string test)   )")
+    fills(ar,"Hello world")
+    fills(br,"langth of s is:")
+    b[1]='e
     a = prints(c)
     printc(10)
     a = prints(b)
+    print(strlen(c))
+    printc(10)
+    print(102)
+    printc('e)
     printc(10)
 end
 
@@ -823,6 +838,9 @@ function fixSquareBraces(tree){
     }
     return {children:tree, text}
 }
+
+
+
 
 // printConsoleTree(fixSquareBraces(codeToTree(code)))
 
