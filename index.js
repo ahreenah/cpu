@@ -463,10 +463,20 @@ export default class Device{
                 this.cmdAddr++;
             break
 
-            case c.PRINT:
-                console.log('>',this.mi1)
-                this.cmdAddr+=1
-            break
+            // not sythesizable
+                case c.PRINT:
+                    // console.log('>',this.mi1)
+                    process.stdout.write(this.mi1.toString());
+                    this.cmdAddr+=1
+                break
+
+                case c.PRINTC:
+                    // console.log('>',this.mi1)
+                    process.stdout.write(String.fromCharCode(this.mi1));
+                    this.cmdAddr+=1
+                break
+            
+
 
             
             default:

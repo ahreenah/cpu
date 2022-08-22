@@ -277,6 +277,25 @@ function mathToAsm(tree, context){
 
     }
 
+    
+
+    else if (tree.text=='\''){
+        console.log(tree.children[0])
+        // console.log(getChildByText(tree,'right'))
+        let right = tree.children[0]
+        let symbol = right.text
+        // console.log(context[varName].negOffset)
+        // console.log(right)
+
+        // while(1){}
+        return [
+            `ctomi1 ${symbol.charCodeAt(0)}`,
+            'pushmi1 0'
+        ]
+        while(1){}
+        // let leftAsm = mathToAsm(tree.children[0].children[0],context)
+
+    }
 
     
     else if(tree.children){
@@ -540,6 +559,19 @@ function compile(tree){
                     '# end return'
                 ]
             }
+            else if (i.text=='printc'){
+                let printResAsm = mathToAsm(i.children[0],availableVarsObj);
+                i.asm=[
+                    
+                    '# printc '+i.children[0].text,
+                    '   # compute '+i.children[0].text,
+                    ...printResAsm.map(i=>'      '+i),
+                    '   # print is done from mi1',
+                    '      popmi1 0',
+                    `      printc`,
+                    '# end return'
+                ]
+            }
             else if (i.text=='func'){
                 let funcName = i.children[0].children[0].text
                 let bodyRes = []
@@ -655,14 +687,50 @@ module (main) begin
     
     var begin
         a, b, c: int
-        ar:int(10)
+        ar:int(15)
     end
-
+    func(prints){s,l} begin
+        var begin
+            num:int
+        end
+        num = 0
+        while(num<l) begin
+            printc(s[num])
+            num = num+1
+        end
+    end
+    
+    printc(10)
     b = 1
     while (b<10) begin
         print(b*2)
         b= b+1
     end
+    
+    printc(10)
+    printc(10)
+
+    c = @(ar)
+    c[0]='(H)
+    c[1]='(e)
+    c[3]='(l)
+    c[4]='(l)
+    c[5]='(o)
+    c[6]=32
+    c[7]='(S)
+    c[8]='(t)
+    c[9]='(r)
+    c[10]='(i)
+    c[11]='(n)
+    c[12]='(g)
+    c[13]='(s)
+    c[14]='(!)
+
+
+    prints(c,15)
+    
+    printc(10)
+    printc(10)
 end
 
 

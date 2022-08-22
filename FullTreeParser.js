@@ -11,7 +11,7 @@ const TOKEN_TYPES =  {
     KEYWORD : ['if','while','else','func','var', 'return'],
     BRACKET:  ['[',']','{','}','(',')','begin','end',],
     SEPARATOR:[',',';',],
-    UNARY_OPERATOR:['@','$','!']
+    UNARY_OPERATOR:['@','$','!','\'']
 }
 
 class Node{
@@ -411,6 +411,7 @@ printConsoleTree(codeToTree(`
 
         x[0]= 3
         x[2+2] = 9
+        s = '(a)
     end
 
 `))
