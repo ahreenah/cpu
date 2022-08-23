@@ -724,7 +724,7 @@ module (main) begin
         ar:int(150)
         br:int(150)
     end
-    func(prints){s} begin
+    func prints {s} begin
         var begin
             num:int
         end
@@ -739,7 +739,7 @@ module (main) begin
             end
         end
     end
-    func(strlen){s} begin
+    func strlen (s) begin
         var begin
             i:int
         end
@@ -763,7 +763,7 @@ module (main) begin
     c = @ar
     b = @br
 
-    fills(ar,"Hello world")
+    fills(ar,"Hello world!")
     fills(br,"langth of s is:")
     b[1]='e
     a = prints(c)

@@ -471,6 +471,28 @@ function fixUnaryOperators(tree){
 }
 
 
+function fixFuncs(tree){
+    for(let i = 0; i<tree.children.length-1; i++){
+        console.log(tree.children[i].text)
+        if(tree.children[i].text=='func'){
+            // console.log('func!')
+            // while(1){}
+            let nextChildren = tree.children[i+1].children
+            delete tree.children[i+1].children
+            tree.children[i+1].lastLevelType='('
+            tree.children[i].children=[
+                tree.children[i+1],
+                ...nextChildren
+            ]
+            tree.children[i].children[1].lastLevelType='{'
+            for(let j = i+1; j<tree.children.length-1; j++)
+                tree.children[j] = tree.children[j+1]
+            tree.children.pop()
+        }
+    }
+    return tree
+}
+
 export function codeToTree(code){
 
     let ftp = new FullTreeParser(code)
@@ -483,6 +505,9 @@ export function codeToTree(code){
     ftp.lastLevelOnly()
     // console.log(ftp.lastLevelTokens)
     let d = ftp.levelize()[0]
+    d = fixFuncs(d);
+    console.log(d)
+    // while(1){}
     let ko = groupBy(d,'lastLevelType',true).children[1];
     let testAfterBraces = ko
     
@@ -509,15 +534,27 @@ printConsoleTree(codeToTree(`
 
     module (main) begin
 
-        x[0]= 3
-        x[2+2] = 9
-        ! tcdss = 'a
-
-        fills(c,Hello^_sworld)
-        s = "Hello    world!"
-        print(8)
-        return (9)
         return 9
+
+        func main {t} begin
+            var begin
+                t:int
+            end
+            x = 0
+            return 8
+        end
+        
+        func strlen (s) begin
+            var begin
+                i:int
+            end
+            i = 1
+            while(s[i]>0)begin
+                i = i+1
+            end
+            return i
+        end
+
     end
 
 `))
