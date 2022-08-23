@@ -111,7 +111,25 @@ export default class Device{
             return this.mi1-this.mi2
         else return Math.pow(2,32)+this.mi1-this.mi2
     }
-    get momul(){ return this.mi1*this.mi2 }
+    get momul(){ 
+        let mi1v = this.mi1%Math.pow(2,31)
+        let mi2v = this.mi2%Math.pow(2,31)
+        let mi1s = this.mi1/Math.pow(2,31)>=1
+        if(mi1s)
+            mi1v = Math.pow(2,31)-mi1v
+        let mi2s = this.mi2/Math.pow(2,31)>=1
+        if(mi2s)
+            mi2v = Math.pow(2,31)-mi2v
+        
+        // console.log(mi1s,mi1v, mi2s,mi2v)
+        let resv = mi1v*mi2v
+        let ress = mi1s!=mi2s
+        // return ress*Math.pow(2,31)+resv%Math.pow(2,31)
+        // console.log(mi1v*mi2v)
+        if(!ress)
+            return mi1v*mi2v
+        return Math.pow(2,32)-mi1v*mi2v
+    }
     get mogt(){ return this.mi1>this.mi2}
     get molt(){ return this.mi1<this.mi2}
     get moeq(){ return this.mi1==this.mi2}
@@ -466,7 +484,19 @@ export default class Device{
             // not sythesizable
                 case c.PRINT:
                     // console.log('>',this.mi1)
-                    process.stdout.write(this.mi1.toString());
+                    let sign = (this.mi1/Math.pow(2,31))>=1
+                    let resv = this.mi1%Math.pow(2,31)
+                    // console.log(sign,resv)
+                    if(sign){
+                        resv = Math.pow(2,31)-resv
+                        // console.log(resv)
+                    }
+                    if(sign)
+                        process.stdout.write('-'+(resv.toString()));
+                    else{
+                        // console.log(this.mi1)
+                        process.stdout.write(resv.toString());
+                    }
                     this.cmdAddr+=1
                 break
 

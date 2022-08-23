@@ -724,7 +724,7 @@ module (main) begin
         ar:int(150)
         br:int(150)
     end
-    func prints {s} begin
+    func prints (s) begin
         var begin
             num:int
         end
@@ -750,29 +750,16 @@ module (main) begin
         return i
     end
     
+    a = 8
+    b = 0-2
+    c = 0-3
     printc(10)
-    b = 1
-    while (b<10) begin
-        print(b*2)
-        b= b+1
-    end
-    
+    print(1*(0-2)*(1-2)*(0-9))
     printc(10)
+    print(2*(0-2)*5)
     printc(10)
-
-    c = @ar
-    b = @br
-
-    fills(ar,"Hello world!")
-    fills(br,"langth of s is:")
-    b[1]='e
-    a = prints(c)
+    print(2*2*7)
     printc(10)
-    a = prints(b)
-    print(strlen(c))
-    printc(10)
-    print(102)
-    printc('e)
     printc(10)
 end
 
