@@ -851,10 +851,18 @@ module (main) begin
         return i
     end
 
+    func sum (io,oi) begin
+        var begin
+            k: int
+        end
+        k = io+oi
+        return k
+    end
 
 
     a = 9
-    b = 89
+    b = 8
+    c = sum(a,b)
     print(c)
 end
 

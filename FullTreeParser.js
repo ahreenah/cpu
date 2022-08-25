@@ -497,6 +497,7 @@ function fixFuncs(tree){
             }//tree.children[i].children[1].children[0].children[0]
             // tree.children[i].children[1].children=[tree.children[i].children[1].children[0].children[0]]
             // tree.children[i].text=
+            // tree.children[i].children[2].children = tree.children[i].children[2].children
             for(let j = i+1; j<tree.children.length-1; j++)
                 tree.children[j] = tree.children[j+1]
             tree.children.pop()
@@ -516,6 +517,23 @@ function deleteTopItemInArgs(tree){
             i.children[1].children = i.children[1].children[0].children
             console.log('found func')
             printConsoleTree(i)
+            res.push(i)
+            // while(1){}
+        }else{
+            res.push(i)
+        }
+    }
+    return {text:tree.text,children:res}
+}
+
+function fixFuncBegins(tree){
+    
+    let res = []
+    for(let i of tree.children){
+        if(i.text=='func'){
+            i.children[2].children = i.children[2].children[0].children
+            console.log('found func')
+            // printConsoleTree(i)
             res.push(i)
             // while(1){}
         }else{
@@ -568,6 +586,7 @@ export function codeToTree(code){
         }
         
     }
+    ko = fixFuncBegins(ko)
     printConsoleTree(ko)
     // while(1){}
     return ko
