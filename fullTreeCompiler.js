@@ -72,7 +72,7 @@ function parseVar(tree){
         let leftItem = getChildByText(i,'left');
         let size = 1
         if(rightItem.children[0].children?.length)
-            size = parseInt(rightItem.children[0].children[0].text)
+            size *= parseInt(rightItem.children[0].children[0].text)
         let type={
             type:rightItem.children[0].text,
             size,
@@ -83,7 +83,7 @@ function parseVar(tree){
     let varObj = {vars:[]}
     for(let i of res){
         for(let j of i.varNames){
-            varObj.vars.push({name:j, size:i.size})
+            varObj.vars.push({name:j, size:i.size, type:i.type})
         }
     }
     let totalSize = 0
@@ -358,14 +358,30 @@ function parseAssign(tree, context){
 
 function compile(tree){
     // console.log('got', tree)
-    let globalVar = getChildByText(tree,'var')
-    let parsedVar = parseVar(globalVar);
+    const classes = tree.children.filter(i=>i.text=='class')
+    let types =[{name:'int',size:1}]
+    // console.log(classes.map(i=>getChildByText(i,'name').children[0].text))
+    types = [...types,...classes.map(i=>({
+        name:getChildByText(i,'name').children[0].text,
+        fields:getChildByText(i,'fields').children.map(field=>({
+            i:console.log(JSON.stringify(field)),
+            name:getChildByText(field,'left').children[0].text
+        }))
+    }))]
+    console.log(JSON.stringify(types,null,2))
+    console.data.layer()
+    // while(1){}
+    tree.children = tree.children.filter(i=>i.text!='class')
     // console.log('s:',JSON.stringify(parsedVar))
     let globalVarObj = {}
+    let globalVar = getChildByText(tree,'var')
+    let parsedVar = parseVar(globalVar, classes);
     // console.log('gv',globalVarObj)
     for (let i of parsedVar.vars){
         globalVarObj[i.name] = i
+        console.log(i)
     }
+    while(1){}
     // console.log('gvo',globalVarObj)
     globalVar = globalVarObj
     function compileLogicTree(tree, localContext, globalContextOffset,funcName) {
@@ -805,6 +821,16 @@ code=`
 
 module (main) begin
     
+    class human(
+        age:int
+    )
+
+    class student is human(
+        class:int,
+        midMark:int
+    )
+
+
     var begin
         a, b, c,d,e: int
         ar:int(150)
@@ -859,8 +885,7 @@ module (main) begin
         return k
     end
 
-
-    a = 9
+    a = 8
     b = 8
     c = sum(a,b)
     print(c)

@@ -25,6 +25,7 @@ class HLCompiler{
     textLines=[];
     lines = [];
     variables=[];
+    types=['int'];
     beginCount=0;
     setCode(v){
         // needn't fix for stack

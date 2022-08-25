@@ -542,6 +542,59 @@ function fixFuncBegins(tree){
     }
     return {text:tree.text,children:res}
 }
+
+
+
+
+function fixStructs(tree){
+    for(let i=0; i<tree.children.length; i++){
+        if(tree.children[i].text=='class'){
+            let hasExtend = tree?.children?.[i+2]?.text =='is'
+            tree.children[i].children=[
+                {
+                    text:'name',
+                    children:[
+                        // {
+                            // text:
+                            {text:tree.children[i+1].text}
+                        // }
+                    ]
+                },
+                {
+                    text:'fields',
+                    children:hasExtend?tree.children[i+3].children:tree.children[i+1].children
+                }
+            ]
+            if(hasExtend){
+                tree.children[i].children.push({
+                    text:'extend',
+                    children:[
+                        {
+                            text: tree.children[i+3].text
+                        }
+                    ]
+                })
+                
+                for(let j = i+1; j<tree.children.length-1; j++){
+                    tree.children[j] = tree.children[j+1]
+                }
+                tree.children.pop()
+                
+                for(let j = i+1; j<tree.children.length-1; j++){
+                    tree.children[j] = tree.children[j+1]
+                }
+                tree.children.pop()
+            }
+            for(let j = i+1; j<tree.children.length-1; j++){
+                tree.children[j] = tree.children[j+1]
+            }
+            tree.children.pop()
+
+        }
+    }
+    return tree
+}
+
 export function codeToTree(code){
 
     let ftp = new FullTreeParser(code)
@@ -567,6 +620,7 @@ export function codeToTree(code){
     printConsoleTree(ko)
     ko = deleteTopItemInArgs(ko)
     console.log('after deleteTopItemInArgs')
+    ko = fixStructs(ko)
     printConsoleTree(ko)
     while(true){
         console.log('in ctt')
@@ -595,13 +649,34 @@ printConsoleTree(codeToTree(`
 
 
 module (main) begin
+
     
+    class person (
+        name: int(20)
+        aghe: int
+    )
+
+    class person2 (
+        name: int(20)
+        aghe: int
+    )
+
+    class human is person2 (
+        name: int(20)
+        aghe: int
+    )
+
+    
+
     var begin
         a, b, c,d,e: int
         ar:int(150)
         br:int(150)
         eneds:int(20)
     end
+
+
+
 
     func streqr (x) begin
         var begin
@@ -619,6 +694,6 @@ module (main) begin
         return i
     end
 
-    
+
 end
 `))
