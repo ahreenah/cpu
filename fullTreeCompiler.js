@@ -559,6 +559,18 @@ function compile(tree){
                     '# end return'
                 ]
             }
+            else if (i.text=='reads'){
+                let printResAsm = mathToAsm(i.children[0],availableVarsObj);
+                i.asm=[
+                    
+                    '# read '+i.children[0].text,
+                    '   # compute '+i.children[0].text,
+                            ...printResAsm.map(i=>'      '+i),
+                    '   popmi1 0',
+                    '   reads',
+                    '# end return'
+                ]
+            }
             else if (i.text=='printc'){
                 let printResAsm = mathToAsm(i.children[0],availableVarsObj);
                 i.asm=[
@@ -584,7 +596,7 @@ function compile(tree){
                 let localVars = parseVar(localVarSection)
                 // console.log('local var:',localVars)
                 localVars.vars  = localVars.vars.map(i=>({...i,negOffset:i.negOffset-2}))
-                let args = arrayFromBin(getChildByText(i,'{').children[0],',')
+                let args = arrayFromBin(getChildByText(i,'args').children[0],',')
                 for(let k=args.length-1; k>=0; k--){
                     args[k]={
                         name:args[k].text,
@@ -724,6 +736,7 @@ module (main) begin
         ar:int(150)
         br:int(150)
     end
+
     func prints (s) begin
         var begin
             num:int
@@ -739,6 +752,7 @@ module (main) begin
             end
         end
     end
+
     func strlen (s) begin
         var begin
             i:int
@@ -749,17 +763,36 @@ module (main) begin
         end
         return i
     end
+
     
-    a = 8
-    b = 0-2
-    c = 0-3
+    func streq {a} begin
+        var begin
+            k,i:int
+        end
+        k = 1
+        i = 0
+        return k
+    end
+
+
+    
+    fills(ar,"Hello World")
+    fills(br,"length of s is:")
+    a = prints(@ar)
     printc(10)
-    print(1*(0-2)*(1-2)*(0-9))
+    a = prints(@br)
+
     printc(10)
-    print(2*(0-2)*5)
+    fills(br,"address of ar is:")
+    a = prints(@br)
+    print(@ar)
+    
     printc(10)
-    print(2*2*7)
+    reads(@ar)
     printc(10)
+    fills(br,"You entedred:")
+    a = prints(@br)
+    a = prints(@ar)
     printc(10)
 end
 
@@ -768,7 +801,65 @@ end
 
 
 
+code=`
 
+module (main) begin
+    
+    var begin
+        a, b, c,d,e: int
+        ar:int(150)
+        br:int(150)
+    end
+
+    
+    func prints (s) begin
+        var begin
+            num:int
+        end
+        num = 0
+        while(num<256) begin
+            if(s[num]==0) begin
+                num = 256
+            end
+            if(s[num]>0) begin
+                printc(s[num])
+                num = num+1
+            end
+        end
+    end
+
+    func strlen (s) begin
+        var begin
+            i:int
+        end
+        i = 1
+        while(s[i]>0)begin
+            i = i+1
+        end
+        return i
+    end
+
+
+    func streq (x1) begin
+        var begin
+            i:int
+        end
+        i =0
+        while(x1[i]>0) begin
+            i = i+1
+        end
+        return i
+    end
+
+
+
+    a = 9
+    b = 89
+    print(c)
+end
+
+`
+printConsoleTree(codeToTree(code))
 
 
 function fixSquareBraces(tree){
@@ -898,10 +989,10 @@ let d =new Device()
 d.progmem=eval(lc.getProgmemByteString())
 
 let tick = 0;
-function runTicks(count){
+async function runTicks(count){
     // for(let i=0; i<count; i++){
         while(d.cmdAddr<d.progmem.length+5){
-            d.tick();
+            await d.tick();
             // console.log(d.cmdAddr)
             // console.log('mem:', d.datamem)
             
@@ -915,11 +1006,11 @@ function runTicks(count){
         }
     // }
 }
-
+console.log("\n\n\n----------------------\n\n")
 if(args.indexOf('--run')!=-1)
     runTicks(50)
 // printConsoleTree(codeToTree(btCode))
-            console.log('mi2: ',d.mi2)
-            console.log('mem:', d.datamem)
-            console.log('sp:', d.sp)
-            console.log('ra:', d.ra)
+            // console.log('mi2: ',d.mi2)
+            // console.log('mem:', d.datamem)
+            // console.log('sp:', d.sp)
+            // console.log('ra:', d.ra)

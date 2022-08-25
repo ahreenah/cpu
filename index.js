@@ -1,6 +1,20 @@
 import * as c from  './constants.js'
 
 
+import readline from 'readline';
+
+const rl = readline.createInterface({ input: process.stdin , output: process.stdout });
+
+const getLine = (function () {
+    const getLineGen = (async function* () {
+        for await (const line of rl) {
+            yield line;
+        }
+    })();
+    return async () => ((await getLineGen.next()).value);
+})();
+
+
 function processLine(line){
 
 }
@@ -144,7 +158,7 @@ export default class Device{
         this.datamem=v;
     }
     // posedge clk
-    tick(){
+    async tick(){
         // log(`executiong address:`,this.cmdAddr,`  command: `,this.commandCode, `condition: `, this.commandCondition, 'execute: ',this.execute)
 
         switch(this.commandCode){
@@ -505,6 +519,22 @@ export default class Device{
                     process.stdout.write(String.fromCharCode(this.mi1));
                     this.cmdAddr+=1
                 break
+
+                case c.READS:
+                    // console.log(this.datamem)
+                    let str = await getLine();
+                    let chars = []
+                    for(let i=0; i<str.length; i++){
+                        chars.push(str.charCodeAt(i))
+                        this.datamem[this.mi1+i] = str.charCodeAt(i)
+                    }
+                    chars.push(0)
+                    this.datamem[this.mi1+str.length] = 0
+                    // console.log('in: '+chars)
+                    // console.log('address:',this.mi1)
+                    this.cmdAddr+=2;
+                    // console.log(this.datamem)
+                break   
             
 
 

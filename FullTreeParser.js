@@ -475,24 +475,55 @@ function fixFuncs(tree){
     for(let i = 0; i<tree.children.length-1; i++){
         console.log(tree.children[i].text)
         if(tree.children[i].text=='func'){
-            // console.log('func!')
-            // while(1){}
+            console.log('func!')
+            printConsoleTree(tree.children[i])
             let nextChildren = tree.children[i+1].children
-            delete tree.children[i+1].children
-            tree.children[i+1].lastLevelType='('
-            tree.children[i].children=[
-                tree.children[i+1],
-                ...nextChildren
-            ]
-            tree.children[i].children[1].lastLevelType='{'
+            console.log(nextChildren)
+            nextChildren = (groupBy({children:nextChildren},'lastLevelType'))
+            console.log(nextChildren.children) // [0] -> args, [1] -> body
+            // delete tree.children[i+1].children
+            // tree.children[i+1].lastLevelType='('
+            tree.children[i].children=[{text:tree.children[i+1].text,lastLevelType:'name',children:[]},...nextChildren.children]//[
+                console.log(tree.children[i])
+                // while(1){}
+            //     tree.children[i+1],
+            //     ...nextChildren
+            // ]
+            // tree.children[i].children[1].lastLevelType='{'
+            tree.children[i].children[1] = {
+                lastLevelType:'args',
+                text:',',
+                children:tree.children[i].children[1].children
+            }//tree.children[i].children[1].children[0].children[0]
+            // tree.children[i].children[1].children=[tree.children[i].children[1].children[0].children[0]]
+            // tree.children[i].text=
             for(let j = i+1; j<tree.children.length-1; j++)
                 tree.children[j] = tree.children[j+1]
             tree.children.pop()
+            // while(1){}
         }
     }
     return tree
 }
 
+let cttcount = 0
+
+
+function deleteTopItemInArgs(tree){
+    let res = []
+    for(let i of tree.children){
+        if(i.text=='func'){
+            i.children[1].children = i.children[1].children[0].children
+            console.log('found func')
+            printConsoleTree(i)
+            res.push(i)
+            // while(1){}
+        }else{
+            res.push(i)
+        }
+    }
+    return {text:tree.text,children:res}
+}
 export function codeToTree(code){
 
     let ftp = new FullTreeParser(code)
@@ -507,7 +538,6 @@ export function codeToTree(code){
     let d = ftp.levelize()[0]
     d = fixFuncs(d);
     console.log(d)
-    // while(1){}
     let ko = groupBy(d,'lastLevelType',true).children[1];
     let testAfterBraces = ko
     
@@ -515,8 +545,18 @@ export function codeToTree(code){
 
     let was = null
     ko = fixUnaryOperators(ko)
+    console.log('before deleteTopItemInArgs')
+    printConsoleTree(ko)
+    ko = deleteTopItemInArgs(ko)
+    console.log('after deleteTopItemInArgs')
+    printConsoleTree(ko)
     while(true){
         console.log('in ctt')
+        
+        cttcount++
+
+        if(cttcount>100) break
+        // while(1){}
         let addr = findNotParsedMath(ko)
         
         if(addr){
@@ -528,33 +568,38 @@ export function codeToTree(code){
         }
         
     }
+    printConsoleTree(ko)
+    // while(1){}
     return ko
 }//($(&arr+i))>$(&arr+j)
 printConsoleTree(codeToTree(`
 
-    module (main) begin
 
-        return 9
-
-        func main {t} begin
-            var begin
-                t:int
-            end
-            x = 0
-            return 8
-        end
-        
-        func strlen (s) begin
-            var begin
-                i:int
-            end
-            i = 1
-            while(s[i]>0)begin
-                i = i+1
-            end
-            return i
-        end
-
+module (main) begin
+    
+    var begin
+        a, b, c,d,e: int
+        ar:int(150)
+        br:int(150)
+        eneds:int(20)
     end
 
+    func streqr (x) begin
+        var begin
+            i:int
+        end
+        i =0
+        return i
+    end
+
+    func streq (x2, u) begin
+        var begin
+            i:int
+        end
+        i =0
+        return i
+    end
+
+    
+end
 `))
