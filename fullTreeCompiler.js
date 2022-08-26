@@ -322,6 +322,46 @@ function mathToAsm(tree, context, types){
         if(!propertyInfo){
             throw new Error(`property ${propertyName} does not exist on type ${context[varName].type}\n\n`)
         }
+        return mathToAsm({
+            text:'$',
+            children:[
+                {
+                    text:'left',
+                    children:[
+                        {
+                            text:'+',
+                            children:[
+                                {
+                                    text:'left',
+                                    children:[
+                                        {
+                                            text:'@',
+                                            children:[{
+                                                    text:'right',
+                                                    children:[
+                                                        {
+                                                            text:varName
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    text:'right',
+                                    children:[
+                                        {
+                                            text:fieldData.posOffset
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },context,types)
         user.mode.exit()
         // console.log(context[varName].negOffset)
         // console.log(right)
@@ -972,30 +1012,22 @@ module (main) begin
     
     class human(
         age:int
+        someOtherField:int
     )
-
-    class student is human(
-        grade:int[3]
-        midMark:int
-    )
-
-
-    class k (
-        ret:int
-    )
-
 
     var begin
         a, b, c,d,e: int
-        ar:int(150)
-        br:int(150)
-        s1, s2: student
+        s1, s2: human
     end
 
     a = 8
     b = 8
-    c = sum(a,b)
-    a = s1.midMark
+    $(@(s1)) = 11
+    $(@(s1)+1) = 24
+    c = s1.age
+    print(c)
+    printc(10)
+    c = s1.someOtherField
     print(c)
 end
 
@@ -1121,6 +1153,8 @@ import Device from './index.js'
 
 
 let lc = new LLCompiler()
+// console.log(compile(fixSquareBraces(codeToTree(code))))
+// while(1){}
 // console.log(compile(fixSquareBraces(codeToTree(code))))
 // while(1){}
 lc.parse(compile(fixSquareBraces(codeToTree(code))))
