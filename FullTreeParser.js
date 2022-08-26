@@ -8,7 +8,7 @@ It computed operation order and does the decomposition to simple actions
 
 const TOKEN_TYPES =  {
     STR:['\"'],
-    SIGN : ['+','-','*','/','>','<','==','!=',':',',','=',],
+    SIGN : ['+','-','*','/','>','<','==','!=',':',',','=','.'],
     KEYWORD : ['if','while','else','func','var', 'return'],
     BRACKET:  ['[',']','{','}','(',')','begin','end',],
     SEPARATOR:[',',';',],
@@ -325,7 +325,7 @@ function mathTreeTestedInConsole(arr){
                 arr = mathTreeTestedInConsole(arr)
         }
     }
-    for(let signs of[['*','/'],['+','-'],['<','>','==','!=','>=','<='],['='],[',',';'],[':']]){
+    for(let signs of[['.'],['*','/'],['+','-'],['<','>','==','!=','>=','<='],['='],[',',';'],[':']]){
         let center = arr.indexOf(arr.find(i=>((signs.indexOf(i.text)!=-1) && (!i.computed))))
         let hasChildren = arr[center]?.children?.length
         if(center!=-1){
@@ -673,6 +673,7 @@ module (main) begin
         ar:int(150)
         br:int(150)
         eneds:int(20)
+        hum:human
     end
 
 
@@ -694,6 +695,8 @@ module (main) begin
         return i
     end
 
+    
+    hum.age.size.(3) = 22
 
 end
 `))

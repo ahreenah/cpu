@@ -1,6 +1,13 @@
 import {printConsoleTree, codeToTree} from './FullTreeParser.js'
 let args = process.argv.slice(2)
 
+const DEFAULT_TYPES = [
+    {
+        name:'int',
+        size:1
+    }
+]
+
 function generateUID() {
     // I generate the UID from two parts here 
     // to ensure the random number provide enough bits.
@@ -63,8 +70,13 @@ function display32(num){
     console.log(decToBinUs(decToBinS(num,31),31))   
 }
 
-function parseVar(tree){
+function parseVar(tree, types){
     let res = []
+    console.log('-- types')
+    if(types){
+        console.log('got types:',types)
+        // cosds.dsfsf.dsfs()
+    }
     for(let i of tree.children){
         if(i.text!=':')
             throw new Error(`Var line should contain exactly one ":" sign" `)
@@ -73,6 +85,16 @@ function parseVar(tree){
         let size = 1
         if(rightItem.children[0].children?.length)
             size *= parseInt(rightItem.children[0].children[0].text)
+        if(!types){
+            types = DEFAULT_TYPES
+        }
+        console.log('types inside loop:',types)
+        let typeData = types.filter(i=>i.name==(rightItem.children[0].text))[0]
+        console.log('type data:', typeData, rightItem.children[0].text, types.map(i=>i.name))
+        // here!!!
+        if(!typeData)
+            throw new Error('\''+rightItem.children[0].text+'\' does not name a type')
+
         let type={
             type:rightItem.children[0].text,
             size,
@@ -95,13 +117,16 @@ function parseVar(tree){
     return varObj
 }
 
-function mathToAsm(tree, context){
+function mathToAsm(tree, context, types){
+    if(!types){
+        types.are.not.defined()
+    }
     if(!isNaN(parseInt(tree.text))){
         return [`ctomi1  ${tree.text}`, `pushmi1 0`]
     }
     if(tree.text=='+'){
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
-        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context, types)
         return [
             ...leftAsm, 
             ...rightAsm,
@@ -112,8 +137,8 @@ function mathToAsm(tree, context){
         ]
     }
     else if(tree.text=='-'){
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
-        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context, types)
         return [
             ...leftAsm, 
             ...rightAsm,
@@ -125,8 +150,8 @@ function mathToAsm(tree, context){
     }
 
     else if(tree.text=='*'){
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
-        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context, types)
         return [
             ...leftAsm, 
             ...rightAsm,
@@ -138,8 +163,8 @@ function mathToAsm(tree, context){
     }
 
     else if(tree.text=='>'){
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
-        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context, types)
         return [
             ...leftAsm, 
             ...rightAsm,
@@ -155,8 +180,8 @@ function mathToAsm(tree, context){
     }
 
     else if(tree.text=='!='){
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
-        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context, types)
         return [
             ...leftAsm, 
             ...rightAsm,
@@ -172,8 +197,8 @@ function mathToAsm(tree, context){
     }
 
     else if(tree.text=='<='){
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
-        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context, types)
         return [
             ...leftAsm, 
             ...rightAsm,
@@ -189,8 +214,8 @@ function mathToAsm(tree, context){
     }
 
     else if(tree.text=='>='){
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
-        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context, types)
         return [
             ...leftAsm, 
             ...rightAsm,
@@ -206,8 +231,8 @@ function mathToAsm(tree, context){
     }
     
     else if(tree.text=='<'){
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
-        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context, types)
         return [
             ...leftAsm, 
             ...rightAsm,
@@ -223,8 +248,8 @@ function mathToAsm(tree, context){
     }
 
     else if(tree.text=='=='){
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
-        let rightAsm = mathToAsm(tree.children[1].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
+        let rightAsm = mathToAsm(tree.children[1].children[0],context, types)
         return [
             ...leftAsm, 
             ...rightAsm,
@@ -242,7 +267,7 @@ function mathToAsm(tree, context){
 
     if(tree.text=='$'){
         // value by addres
-        let leftAsm = mathToAsm(tree.children[0].children[0],context)
+        let leftAsm = mathToAsm(tree.children[0].children[0],context, types)
         return [
             ...leftAsm,
             'popmi1 0',
@@ -256,6 +281,48 @@ function mathToAsm(tree, context){
     else if (tree.text=='@'){
         let right = getChildByText(tree,'right').children[0]
         let varName = right.text
+        // console.log(context[varName].negOffset)
+        // console.log(right)
+
+        // while(1){}
+        return [
+            'pushsp 0',
+            'popmi1 0',
+            `ctomi2 ${context[varName].negOffset-1}`,
+            'mosubtomi1',
+            // // ...mathToAsm(right,context),
+            // 'pushsp 0',
+            // 'popmi1 0',
+            // 'popmi2 0',
+            // 'mosubtomi1',
+            'pushmi1 0'
+        ]
+        while(1){}
+        // let leftAsm = mathToAsm(tree.children[0].children[0],context)
+
+    }
+
+    
+    else if (tree.text=='.'){
+        let left = getChildByText(tree,'left').children[0]
+        let right = getChildByText(tree,'right').children[0]
+        let varName = left.text
+        let propertyName = right.text
+        console.log('property access')
+        console.log('variable name:',varName)
+        console.log('property name:',propertyName)
+        console.log('variable data:',context[varName])
+        console.log('variable type:',context[varName].type)
+        let typeData = types.filter(i=>i.name==context[varName].type)[0];
+        console.log('variable type data:',typeData)
+        let fieldData = typeData.fields.filter(i=>i.name==propertyName)[0]
+        console.log('property data:', fieldData)
+        console.log(`equivalent to: $(@(${varName})+${fieldData.posOffset})`)
+        let propertyInfo = typeData.fields.filter(i=>i.name==propertyName)[0]
+        if(!propertyInfo){
+            throw new Error(`property ${propertyName} does not exist on type ${context[varName].type}\n\n`)
+        }
+        user.mode.exit()
         // console.log(context[varName].negOffset)
         // console.log(right)
 
@@ -308,7 +375,7 @@ function mathToAsm(tree, context){
             // console.log(tree);
             // console.log(arrayFromBin(tree.children[0],',').map(i=>mathToAsm(i,context)))
             // while(1){}
-            for(let k of arrayFromBin(tree.children[0],',').map(i=>mathToAsm(i,context))){
+            for(let k of arrayFromBin(tree.children[0],',').map(i=>mathToAsm(i,context,types))){
                 tree.asm = [...tree.asm, ...k]
             }
 
@@ -347,13 +414,13 @@ function mathToAsm(tree, context){
     
 }
 
-function parseAssign(tree, context){
+function parseAssign(tree, context, types){
     // printConsoleTree(tree)
     let rightItem = getChildByText(tree,'right');
     let leftItem = getChildByText(tree,'left');
     // printConsoleTree(leftItem)
     // printConsoleTree(rightItem)
-    return(mathToAsm(rightItem.children[0], context))
+    return(mathToAsm(rightItem.children[0], context, types))
 }
 
 function compile(tree){
@@ -361,27 +428,57 @@ function compile(tree){
     const classes = tree.children.filter(i=>i.text=='class')
     let types =[{name:'int',size:1}]
     // console.log(classes.map(i=>getChildByText(i,'name').children[0].text))
-    types = [...types,...classes.map(i=>({
-        name:getChildByText(i,'name').children[0].text,
-        fields:getChildByText(i,'fields').children.map(field=>({
-            i:console.log(JSON.stringify(field)),
-            name:getChildByText(field,'left').children[0].text
-        }))
-    }))]
+
+    let parsedClasses=[]
+
+    function parseClass(v){
+        console.log(v)
+
+        let fields = parseVar(getChildByText(v,'fields'), types).vars
+        let name = getChildByText(v,'name').children[0].text
+        let extend = getChildByText(v,'extend')?.children[0]?.text
+        console.log(fields)
+        console.log('extend',extend)
+        if(extend){
+            let extendData = parsedClasses.filter(i=>i.name==extend)[0]
+            console.log('extend data:',extendData)
+            fields = [...extendData.fields,...fields]
+        }
+        let size = 0
+
+        for(let f of fields){
+            f.posOffset = size;
+            size+=f.size;
+        }
+        parsedClasses.push({
+            name,
+            fields,
+            size
+        })
+        return {
+            name,
+            fields,
+            size
+        }
+    }
+    
+    types = [...types,...classes.map(parseClass)]
     console.log(JSON.stringify(types,null,2))
-    console.data.layer()
     // while(1){}
+    // asd.asd.asd.asd()
     tree.children = tree.children.filter(i=>i.text!='class')
     // console.log('s:',JSON.stringify(parsedVar))
     let globalVarObj = {}
     let globalVar = getChildByText(tree,'var')
-    let parsedVar = parseVar(globalVar, classes);
+
+    console.log('going to globalVar with types',types)
+    let parsedVar = parseVar(globalVar, types);
     // console.log('gv',globalVarObj)
     for (let i of parsedVar.vars){
         globalVarObj[i.name] = i
         console.log(i)
     }
-    while(1){}
+    // console.error.debugStop()
     // console.log('gvo',globalVarObj)
     globalVar = globalVarObj
     function compileLogicTree(tree, localContext, globalContextOffset,funcName) {
@@ -429,7 +526,7 @@ function compile(tree){
                         // push right value
                         'pushmi1 0',
                         // compute address
-                        ...mathToAsm(getChildByText(leftChild,'right').children[0],availableVarsObj),
+                        ...mathToAsm(getChildByText(leftChild,'right').children[0],availableVarsObj, types),
                         // get computed address
                         'popmi2 0',
                         // save address to ra
@@ -443,9 +540,8 @@ function compile(tree){
                 }else{
                     leftAsm =  [`mi1tomemspnegoffset ${availableVarsObj[leftName].negOffset-1}`]
                 }
-
                 i.asm = [
-                    ...parseAssign(i, availableVarsObj),
+                    ...parseAssign(i, availableVarsObj, types),
                     'popmi1 0',
                     ...leftAsm
                     // `mi1tomemspnegoffset ${isPointer?'xx':globalVar[leftName].negOffset-1}`
@@ -455,7 +551,7 @@ function compile(tree){
             }
             else if(i.text=='var'){
                 // console.log(i)
-                let parsedVar = parseVar(i);
+                let parsedVar = parseVar(i, types);
                 // console.log('s:',JSON.stringify(parsedVar))
                 let globalVarObj = {}
                 // console.log('gv',globalVarObj)
@@ -479,7 +575,7 @@ function compile(tree){
                     bodyRes = [...bodyRes, ...k]
                 }
                 // console.log(getChildByText(i,'(').children[0])
-                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],availableVarsObj);
+                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],availableVarsObj, types);
                 // console.log('mta',condAsm)
                 // while(1){}
                 let condRes = []
@@ -516,7 +612,7 @@ function compile(tree){
                     bodyRes = [...bodyRes, ...k]
                 }
                 // console.log(getChildByText(i,'(').children[0])
-                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],availableVarsObj);
+                let condAsm  =mathToAsm(getChildByText(i,'(').children[0],availableVarsObj, types);
                 // console.log('mta',cossndAsm)
                 // while(1){}
                 let condRes = []
@@ -549,7 +645,7 @@ function compile(tree){
             else if(i.text=='return'){
                 // console.log(i.children[0])
                 // console.log(i)
-                let retResAsm = mathToAsm(i.children[0],availableVarsObj);
+                let retResAsm = mathToAsm(i.children[0],availableVarsObj, types);
                 
                 i.asm=[
                     '# return '+i.children[0].text,
@@ -563,7 +659,7 @@ function compile(tree){
                 // while((1)){}
             }
             else if (i.text=='print'){
-                let printResAsm = mathToAsm(i.children[0],availableVarsObj);
+                let printResAsm = mathToAsm(i.children[0],availableVarsObj, types);
                 i.asm=[
                     
                     '# print '+i.children[0].text,
@@ -576,7 +672,7 @@ function compile(tree){
                 ]
             }
             else if (i.text=='reads'){
-                let printResAsm = mathToAsm(i.children[0],availableVarsObj);
+                let printResAsm = mathToAsm(i.children[0],availableVarsObj, types);
                 i.asm=[
                     
                     '# read '+i.children[0].text,
@@ -588,7 +684,7 @@ function compile(tree){
                 ]
             }
             else if (i.text=='printc'){
-                let printResAsm = mathToAsm(i.children[0],availableVarsObj);
+                let printResAsm = mathToAsm(i.children[0],availableVarsObj, types);
                 i.asm=[
                     
                     '# printc '+i.children[0].text,
@@ -609,7 +705,7 @@ function compile(tree){
                 if(bodyChild.children[0].text=='var')
                     bodyChild.children = bodyChild.children.splice(1)
                 // console.log('body child:',bodyChild)
-                let localVars = parseVar(localVarSection)
+                let localVars = parseVar(localVarSection, types)
                 // console.log('local var:',localVars)
                 localVars.vars  = localVars.vars.map(i=>({...i,negOffset:i.negOffset-2}))
                 let args = arrayFromBin(getChildByText(i,'args').children[0],',')
@@ -813,6 +909,59 @@ module (main) begin
 end
 
 
+
+//// strings
+
+
+    
+func prints (s) begin
+var begin
+    num:int
+end
+num = 0
+while(num<256) begin
+    if(s[num]==0) begin
+        num = 256
+    end
+    if(s[num]>0) begin
+        printc(s[num])
+        num = num+1
+    end
+end
+end
+
+func strlen (s) begin
+var begin
+    i:int
+end
+i = 1
+while(s[i]>0)begin
+    i = i+1
+end
+return i
+end
+
+
+func streq (x1) begin
+var begin
+    i:int
+end
+i =0
+while(x1[i]>0) begin
+    i = i+1
+end
+return i
+end
+
+func sum (io,oi) begin
+var begin
+    k: int
+end
+k = io+oi
+return k
+end
+
+
 `
 
 
@@ -826,8 +975,13 @@ module (main) begin
     )
 
     class student is human(
-        class:int,
+        grade:int[3]
         midMark:int
+    )
+
+
+    class k (
+        ret:int
     )
 
 
@@ -835,59 +989,13 @@ module (main) begin
         a, b, c,d,e: int
         ar:int(150)
         br:int(150)
-    end
-
-    
-    func prints (s) begin
-        var begin
-            num:int
-        end
-        num = 0
-        while(num<256) begin
-            if(s[num]==0) begin
-                num = 256
-            end
-            if(s[num]>0) begin
-                printc(s[num])
-                num = num+1
-            end
-        end
-    end
-
-    func strlen (s) begin
-        var begin
-            i:int
-        end
-        i = 1
-        while(s[i]>0)begin
-            i = i+1
-        end
-        return i
-    end
-
-
-    func streq (x1) begin
-        var begin
-            i:int
-        end
-        i =0
-        while(x1[i]>0) begin
-            i = i+1
-        end
-        return i
-    end
-
-    func sum (io,oi) begin
-        var begin
-            k: int
-        end
-        k = io+oi
-        return k
+        s1, s2: student
     end
 
     a = 8
     b = 8
     c = sum(a,b)
+    a = s1.midMark
     print(c)
 end
 
