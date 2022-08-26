@@ -1029,6 +1029,8 @@ module (main) begin
     printc(10)
     c = s1.someOtherField
     print(c)
+    c = s1.someOtherField
+    print(c)
 end
 
 `
