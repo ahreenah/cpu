@@ -577,13 +577,98 @@ function compile(tree){
                         'mi1tomemra'
                     ];
                     // while(1){}
+                }else if(leftName=='.'){
+                    isPointer = true;
+                    leftName = 'XX'
+                    // console.log(leftChild)
+                    // console.log(getChildByText(leftChild,'right').children[0]);
+                    // console.log('$ right asm',mathToAsm(getChildByText(leftChild,'right').children[0],availableVarsObj))
+
+
+                  console.log(leftChild)
+                  let varName = getChildByText(leftChild,'left').children[0].text
+                  console.log(varName)
+                  let fieldName = getChildByText(leftChild,'right').children[0].text
+                  console.log(fieldName)
+
+                  
+                    console.log('property write')
+                    console.log('variable name:',varName)
+                    console.log('property name:',fieldName)
+                    console.log('variable data:',availableVarsObj[varName])
+                    console.log('variable type:',availableVarsObj[varName].type)
+                    let typeData = types.filter(i=>i.name==availableVarsObj[varName].type)[0];
+                    console.log('variable type data:',typeData)
+                    let fieldData = typeData.fields.filter(i=>i.name==fieldName)[0]
+                    console.log('property data:', fieldData)
+                    
+                    if(!fieldData)
+                        throw new Error(`property ${fieldName} does not exist on type ${availableVarsObj[varName].type}`)
+
+                //   data.system.time.setup();
+
+                    leftAsm = [
+                        // push right value
+                        'pushmi1 0',
+                        // compute address
+                        ...mathToAsm(  {
+                            text:'$',
+                            children:[
+                                {
+                                    text:'left',
+                                    children:[
+                                        {
+                                            text:'+',
+                                            children:[
+                                                {
+                                                    text:'left',
+                                                    children:[
+                                                        {
+                                                            text:'@',
+                                                            children:[{
+                                                                    text:'right',
+                                                                    children:[
+                                                                        {
+                                                                            text:varName
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    text:'right',
+                                                    children:[
+                                                        {
+                                                            text:fieldData.posOffset
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },availableVarsObj, types),
+                        // get computed address
+                        'popmi2 0',
+                        // save address to ra
+                        'mi2tora',
+                        // restore computed value
+                        'popmi1 0',
+                        // save computde value to computed address
+                        'mi1tomemra'
+                    ];
+                    // while(1){}
                 }else{
                     leftAsm =  [`mi1tomemspnegoffset ${availableVarsObj[leftName].negOffset-1}`]
                 }
                 i.asm = [
-                    ...parseAssign(i, availableVarsObj, types),
-                    'popmi1 0',
-                    ...leftAsm
+                    '# = ',
+                    ...parseAssign(i, availableVarsObj, types).map(i=>'    '+i),
+                    '    popmi1 0',
+                    ...leftAsm.map(i=>'    '+i)
                     // `mi1tomemspnegoffset ${isPointer?'xx':globalVar[leftName].negOffset-1}`
                 ]
                 // console.log(i.asm)
@@ -1016,19 +1101,13 @@ module (main) begin
     )
 
     var begin
-        a, b, c,d,e: int
+        a, b, c: int
         s1, s2: human
     end
 
     a = 8
-    b = 8
-    $(@(s1)) = 11
-    $(@(s1)+1) = 24
-    c = s1.age
-    print(c)
-    printc(10)
-    c = s1.someOtherField
-    print(c)
+    s1.age = 20
+    $(@(s1)+0) = 20
     c = s1.someOtherField
     print(c)
 end
@@ -1170,16 +1249,14 @@ async function runTicks(count){
     // for(let i=0; i<count; i++){
         while(d.cmdAddr<d.progmem.length+5){
             await d.tick();
-            // console.log(d.cmdAddr)
-            // console.log('mem:', d.datamem)
+            console.log(d.cmdAddr)
+            console.log('mem:', d.datamem)
             
-            // console.log('mi1: ', d.mi1)
-            // console.log('tick::',tick++,'\n')
-
-            // console.log('mi2: ',d.mi2)
-            // console.log('mem:', d.datamem)
-            // console.log('sp:', d.sp)
-            // console.log('ra:', d.ra)
+            console.log('mi1: ', d.mi1)
+            console.log('tick::',tick++,'\n')
+            console.log('mi2: ',d.mi2)
+            console.log('sp:', d.sp)
+            console.log('ra:', d.ra)
         }
     // }
 }

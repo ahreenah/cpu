@@ -695,8 +695,8 @@ module (main) begin
         return i
     end
 
-    
-    hum.age.size.(3) = 22
+    x = user.name
+    user.name = x
 
 end
 `))
