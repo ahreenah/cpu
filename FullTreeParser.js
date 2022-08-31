@@ -650,53 +650,19 @@ printConsoleTree(codeToTree(`
 
 module (main) begin
 
-    
-    class person (
-        name: int(20)
-        aghe: int
+    class human(
+        age:int
+        someOtherField:int
     )
-
-    class person2 (
-        name: int(20)
-        aghe: int
-    )
-
-    class human is person2 (
-        name: int(20)
-        aghe: int
-    )
-
-    
 
     var begin
-        a, b, c,d,e: int
-        ar:int(150)
-        br:int(150)
-        eneds:int(20)
-        hum:human
+        a, b, c: int
+        s1, s2: human
     end
 
-
-
-
-    func streqr (x) begin
-        var begin
-            i:int
-        end
-        i =0
-        return i
-    end
-
-    func streq (x2, u) begin
-        var begin
-            i:int
-        end
-        i =0
-        return i
-    end
-
-    x = user.name
-    user.name = x
+    s1.age = 20
+    $(@(s1)+0) = 20
+    print(c)
 
 end
 `))

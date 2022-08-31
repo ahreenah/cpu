@@ -666,9 +666,11 @@ function compile(tree){
                 }
                 i.asm = [
                     '# = ',
-                    ...parseAssign(i, availableVarsObj, types).map(i=>'    '+i),
+                    '    # right',
+                    ...parseAssign(i, availableVarsObj, types).map(i=>'        '+i),
+                    '    # left',
                     '    popmi1 0',
-                    ...leftAsm.map(i=>'    '+i)
+                    ...leftAsm.map(i=>'        '+i)
                     // `mi1tomemspnegoffset ${isPointer?'xx':globalVar[leftName].negOffset-1}`
                 ]
                 // console.log(i.asm)
@@ -1100,20 +1102,36 @@ module (main) begin
         someOtherField:int
     )
 
+    class v3(
+        x: int
+        y: int
+        z: int
+    )
+
     var begin
-        a, b, c: int
-        s1, s2: human
+        s1,s2: human[2]
+        v1,v2: v3[3]
     end
 
-    a = 8
-    s1.age = 20
-    $(@(s1)+0) = 20
-    c = s1.someOtherField
-    print(c)
+    $(@s1+0) = 1
+    $(@s1+1) = 2
+    $(@s2+0) = s1.age
+    $(@s2+1) = s1.someOtherField
+    s1.age = 13
+    s2.someOtherField = 51
 end
 
 `
+// пишет в поле не учитывая адрес старта объекта
+// malloc не учитывает размер объекта ,только размер указанный в квадратных скобках
 printConsoleTree(codeToTree(code))
+/*
+needded
+    popmi1 0
+    mi1tora
+    memratomi2
+    pushmi2 0
+*/
 
 
 function fixSquareBraces(tree){
@@ -1178,7 +1196,7 @@ function fixSquareBraces(tree){
 
 console.log(compile(codeToTree(code)))
 if(args.indexOf('--run')==-1)
-    while(1){}      
+    printing.asm.ended();    
 import LLCompiler from './compiler.js'
 
 
